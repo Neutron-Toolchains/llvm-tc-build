@@ -86,7 +86,7 @@ fi
 msg "Checking file integrity of the tarball"
 msg "File: linux-$LINUX_VER.tar.xz"
 msg "Algorithm: sha512"
-if ! msg "$LINUX_TAR_SHA512SUM linux-$LINUX_VER.tar.xz" | sha512sum -c -; then
+if ! echo "$LINUX_TAR_SHA512SUM linux-$LINUX_VER.tar.xz" | sha512sum -c -; then
 	msg "File integrity check: Failed" >&2
 	exit 1
 fi
