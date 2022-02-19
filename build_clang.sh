@@ -129,8 +129,8 @@ fi
 cd "$OUT"
 CC=clang CXX=clang++ LD=lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip \
 	OBJDUMP=llvm-objdump HOSTCC=clang HOSTLD=lld HOSTAR=llvm-ar OBJCOPY=llvm-objcopy \
-	CFLAGS="-march=x86-64 -mtune=generic -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
-	CXXFLAGS="-march=x86-64 -mtune=generic -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+	CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	cmake -G Ninja --log-level=NOTICE \
 	-DLLVM_TARGETS_TO_BUILD="X86" \
 	-DLLVM_ENABLE_PROJECTS="clang;lld;compiler-rt" \
@@ -183,8 +183,8 @@ if [[ "$CLEAN_BUILD" -gt 1 ]]; then
 fi
 cd "$OUT"
 export PATH=$STAGE1:$PATH
-CFLAGS="-march=x86-64 -mtune=generic -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
-	CXXFLAGS="-march=x86-64 -mtune=generic -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
+CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
+	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
 	cmake -G Ninja --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron-Clang" \
 	-DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
@@ -363,8 +363,8 @@ if [[ "$CLEAN_BUILD" -gt 2 ]]; then
 	mkdir "$OUT"
 fi
 cd "$OUT"
-CFLAGS="-march=x86-64 -mtune=generic -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
-	CXXFLAGS="-march=x86-64 -mtune=generic -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	cmake -G Ninja --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron-Clang" \
 	-DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
