@@ -27,7 +27,7 @@ msg() {
 msg "Starting LLVM Build"
 
 rm -rf $KERNEL_DIR
-if [[ "$CLEAN_BUILD" -eq 1 ]]; then
+if [[ "$CLEAN_BUILD" -eq 3 ]]; then
 	rm -rf $LLVM_BUILD
 fi
 
