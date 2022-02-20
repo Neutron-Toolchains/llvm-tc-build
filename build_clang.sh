@@ -424,6 +424,6 @@ STAGE3="$OUT/install/bin"
 msg "Stage 3 Build: End"
 
 msg "Moving stage 3 install dir to build dir"
-mv $OUT/install install/
+mv $OUT/install $BUILDDIR/install/
 msg "LLVM build finished. Final toolchain installed at:"
 msg "$BUILDDIR/install"
