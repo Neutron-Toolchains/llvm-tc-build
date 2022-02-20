@@ -121,11 +121,14 @@ LLVM_PROJECT="$LLVM_DIR/llvm"
 msg "Starting Stage 1 Build"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage1"
-if [[ "$CLEAN_BUILD" -gt 0 ]]; then
-	rm -rf "$OUT"
+if [ -d "$OUT" ]; then
+	if [[ "$CLEAN_BUILD" -gt 0 ]]; then
+		rm -rf "$OUT"
+		mkdir "$OUT"
+	fi
+else
 	mkdir "$OUT"
 fi
-
 cd "$OUT"
 CC=clang CXX=clang++ LD=lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip \
 	OBJDUMP=llvm-objdump HOSTCC=clang HOSTLD=lld HOSTAR=llvm-ar OBJCOPY=llvm-objcopy \
@@ -177,8 +180,12 @@ msg "Stage 2: Build Start"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage2-prof-gen"
 
-if [[ "$CLEAN_BUILD" -gt 1 ]]; then
-	rm -rf "$OUT"
+if [ -d "$OUT" ]; then
+	if [[ "$CLEAN_BUILD" -gt 1 ]]; then
+		rm -rf "$OUT"
+		mkdir "$OUT"
+	fi
+else
 	mkdir "$OUT"
 fi
 cd "$OUT"
@@ -358,8 +365,12 @@ msg "Stage 3 Build: Start"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage3"
 
-if [[ "$CLEAN_BUILD" -gt 2 ]]; then
-	rm -rf "$OUT"
+if [ -d "$OUT" ]; then
+	if [[ "$CLEAN_BUILD" -gt 2 ]]; then
+		rm -rf "$OUT"
+		mkdir "$OUT"
+	fi
+else
 	mkdir "$OUT"
 fi
 cd "$OUT"
