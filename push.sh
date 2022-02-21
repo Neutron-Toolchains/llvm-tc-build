@@ -24,7 +24,6 @@ neutron_pull() {
 	fi
 }
 
-
 # Binutils Info
 cd $BINUTILS_DIR
 binutils_commit="$(git rev-parse HEAD)"

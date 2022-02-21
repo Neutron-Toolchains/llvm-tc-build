@@ -5,7 +5,7 @@ set -e
 PERSONAL=0
 
 msg() {
-	if [[ "$PERSONAL" -eq 1 ]]; then
+	if [[ $PERSONAL -eq 1 ]]; then
 		telegram-send "$1"
 	else
 		echo "$1"

@@ -9,7 +9,7 @@ BINTUILS_BUILD="$BUILDDIR/binutils-build"
 PERSONAL=0
 
 msg() {
-	if [[ "$PERSONAL" -eq 1 ]]; then
+	if [[ $PERSONAL -eq 1 ]]; then
 		telegram-send "$1"
 	else
 		echo "$1"
@@ -20,7 +20,7 @@ build() {
 	rm -rf $BINTUILS_BUILD
 	mkdir -p $BINTUILS_BUILD
 	cd $BINTUILS_BUILD
-	if [[ "$1" == "X86" ]]; then
+	if [[ $1 == "X86" ]]; then
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
@@ -48,7 +48,7 @@ build() {
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
-	elif [[ "$1" == "ARM64" ]]; then
+	elif [[ $1 == "ARM64" ]]; then
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
@@ -76,7 +76,7 @@ build() {
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
-	elif [[ "$1" == "ARM" ]]; then
+	elif [[ $1 == "ARM" ]]; then
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \

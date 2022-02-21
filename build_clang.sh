@@ -17,7 +17,7 @@ LLVM_BUILD="$BUILDDIR/llvm-build"
 
 PERSONAL=0
 msg() {
-	if [[ "$PERSONAL" -eq 1 ]]; then
+	if [[ $PERSONAL -eq 1 ]]; then
 		telegram-send "$1"
 	else
 		echo "==> $1"
@@ -27,7 +27,7 @@ msg() {
 msg "Starting LLVM Build"
 
 rm -rf $KERNEL_DIR
-if [[ "$CLEAN_BUILD" -eq 3 ]]; then
+if [[ $CLEAN_BUILD -eq 3 ]]; then
 	rm -rf $LLVM_BUILD
 fi
 
@@ -122,7 +122,7 @@ msg "Starting Stage 1 Build"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage1"
 if [ -d "$OUT" ]; then
-	if [[ "$CLEAN_BUILD" -gt 0 ]]; then
+	if [[ $CLEAN_BUILD -gt 0 ]]; then
 		rm -rf "$OUT"
 		mkdir "$OUT"
 	fi
@@ -181,7 +181,7 @@ cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage2-prof-gen"
 
 if [ -d "$OUT" ]; then
-	if [[ "$CLEAN_BUILD" -gt 1 ]]; then
+	if [[ $CLEAN_BUILD -gt 1 ]]; then
 		rm -rf "$OUT"
 		mkdir "$OUT"
 	fi
@@ -366,7 +366,7 @@ cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage3"
 
 if [ -d "$OUT" ]; then
-	if [[ "$CLEAN_BUILD" -gt 2 ]]; then
+	if [[ $CLEAN_BUILD -gt 2 ]]; then
 		rm -rf "$OUT"
 		mkdir "$OUT"
 	fi
