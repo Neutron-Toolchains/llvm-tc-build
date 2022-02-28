@@ -159,8 +159,8 @@ CC=clang CXX=clang++ LD=lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip \
 	-DLLVM_TOOL_CLANG_BUILD=ON \
 	-DLLVM_TOOL_LLD_BUILD=ON \
 	-DLLVM_CCACHE_BUILD=ON \
-	-DLLVM_PARALLEL_COMPILE_JOBS=8 \
-	-DLLVM_PARALLEL_LINK_JOBS=8 \
+	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
+	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
 	-DCMAKE_C_FLAGS=-O3 \
 	-DCMAKE_CXX_FLAGS=-O3 \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
@@ -223,8 +223,8 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DLLVM_BUILD_INSTRUMENTED=IR \
 	-DLLVM_BUILD_RUNTIME=OFF \
 	-DLLVM_VP_COUNTERS_PER_SITE=6 \
-	-DLLVM_PARALLEL_COMPILE_JOBS=8 \
-	-DLLVM_PARALLEL_LINK_JOBS=8 \
+	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
+	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
@@ -407,8 +407,8 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DCLANG_TABLEGEN="$STAGE1"/../../bin/clang-tblgen \
 	-DLLVM_TABLEGEN="$STAGE1"/../../bin/llvm-tblgen \
 	-DLLVM_PROFDATA_FILE="$PROFILES"/clang.profdata \
-	-DLLVM_PARALLEL_COMPILE_JOBS=8 \
-	-DLLVM_PARALLEL_LINK_JOBS=8 \
+	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
+	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
 	-DCMAKE_C_FLAGS=-O3 \
 	-DCMAKE_CXX_FLAGS=-O3 \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
