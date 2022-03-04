@@ -6,13 +6,38 @@ set -e
 
 LINUX_VER=5.16.11
 LINUX_TAR_SHA512SUM="d877304a868cf29bb32d059544806314c2cd975be6132eee645d1dd54ed6e1281c4ea4a18ce30c9b59a8d2b5cd9a0bcf9933a36d4754201fb04e06dee2717e7a"
+
+# Extended PGO profiling
+LINUX_4_9_VER=4.9.303
+LINUX_4_9_TAR_SHA512SUM="7e4724ca91be16d937ac9546d544e59afc2425adefbd86ff9b25683706323630d70a6e67400a88ba7e148072d16a68842786643b70b5a64e22f389005d148221"
+
+LINUX_4_14_VER=4.14.268
+LINUX_4_14_TAR_SHA512SUM="cfc2a0df98336752e936444c3212066227acc4eb2523bff186c3fc70e0e6210b9550c9a80446ad637a0e2b1cbe38becfd6191bc27891eb4cf5e78c1d8af2e5b6"
+
+LINUX_4_19_VER=4.19.231
+LINUX_4_19_TAR_SHA512SUM="adf889a67a1f8ccd364bc20d97aa6ad9946b5024e35b3b5fb65027a194af5c020e0831fba51b9369d6f86376354adca0f713cdd7e2d9cee1efaaaa816834c446"
+
+LINUX_5_4_VER=5.4.181
+LINUX_5_4_TAR_SHA512SUM="10fba413fe8da1b569d1366bf99d18ad3b5765abedb81931f4d00b40daacb8797e122bb2fbc1a739f1d9999e01e0b920faa58be41e2010a625c1d58f1b54e288"
+
+LINUX_5_10_VER=5.10.102
+LINUX_5_10_TAR_SHA512SUM="08f5a50cb48e0a58745a4825bbff49df68c4989c241eb1b0e281c69996355fcc84f8aa384069ef2323c07741240733c56a2abb8e85d25e122773ea465af5c57f"
+
 BINUTILS_VER="2_38"
 BUILDDIR=$(pwd)
 CLEAN_BUILD=3
+EXTENDED_PGO=0
 
 LLVM_DIR="$BUILDDIR/llvm-project"
 BINUTILS_DIR="$BUILDDIR/binutils-gdb"
 KERNEL_DIR="$BUILDDIR/linux-$LINUX_VER"
+
+KERNEL_4_9_DIR="$BUILDDIR/linux-$LINUX_4_9_VER"
+KERNEL_4_14_DIR="$BUILDDIR/linux-$LINUX_4_14_VER"
+KERNEL_4_19_DIR="$BUILDDIR/linux-$LINUX_4_19_VER"
+KERNEL_5_4_DIR="$BUILDDIR/linux-$LINUX_5_4_VER"
+KERNEL_5_10_DIR="$BUILDDIR/linux-$LINUX_5_10_VER"
+
 LLVM_BUILD="$BUILDDIR/llvm-build"
 
 PERSONAL=0
@@ -27,6 +52,15 @@ msg() {
 msg "Starting LLVM Build"
 
 rm -rf $KERNEL_DIR
+
+if [[ $EXTENDED_PGO -eq 1 ]]; then
+	rm -rf $KERNEL_4_9_DIR
+	rm -rf $KERNEL_4_14_DIR
+	rm -rf $KERNEL_4_19_DIR
+	rm -rf $KERNEL_5_4_DIR
+	rm -rf $KERNEL_5_10_DIR
+fi
+
 if [[ $CLEAN_BUILD -eq 3 ]]; then
 	rm -rf $LLVM_BUILD
 fi
@@ -59,6 +93,80 @@ binutils_pull() {
 	fi
 }
 
+get_linux_5_tarball() {
+	if [ -e linux-$1.tar.xz ]; then
+		msg "Existing linux-$1 tarball found, skipping download"
+	else
+		msg "Downloading linux-$1 tarball"
+		wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$1.tar.xz"
+	fi
+}
+
+get_linux_4_tarball() {
+	if [ -e linux-$1.tar.xz ]; then
+		msg "Existing linux-$1 tarball found, skipping download"
+	else
+		msg "Downloading linux-$1 tarball"
+		wget "https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$1.tar.xz"
+	fi
+}
+
+verify_and_extract_linux_tarball() {
+	msg "Checking file integrity of the tarball"
+	msg "File: linux-$1.tar.xz"
+	msg "Algorithm: sha512"
+	if ! echo "$2 linux-$1.tar.xz" | sha512sum -c -; then
+		msg "File integrity check: Failed" >&2
+		exit 1
+	fi
+
+	msg "Extracting Linux tarball with tar"
+	if ! pv "linux-$1.tar.xz" | tar -xJf-; then
+		msg "File Extraction: Failed" >&2
+		exit 1
+	fi
+}
+
+extended_pgo_kramel_compile() {
+	clear
+	msg "Training Kernel Version=$1 Arch=$2"
+	make distclean defconfig \
+		LLVM=1 \
+		ARCH=$2 \
+		CC="$STAGE2"/clang \
+		LD="$STAGE2"/ld.lld \
+		AR="$STAGE2"/llvm-ar \
+		NM="$STAGE2"/llvm-nm \
+		LD=$3 \
+		STRIP="$STAGE2"/llvm-strip \
+		OBJCOPY="$STAGE2"/llvm-objcopy \
+		OBJDUMP="$STAGE2"/llvm-objdump \
+		OBJSIZE="$STAGE2"/llvm-size \
+		HOSTCC="$STAGE2"/clang \
+		HOSTCXX="$STAGE2"/clang++ \
+		HOSTAR="$STAGE2"/llvm-ar \
+		HOSTLD="$STAGE2"/ld.lld \
+		CROSS_COMPILE=$4
+
+	time make all -j$(nproc --all) \
+		LLVM=1 \
+		ARCH=$2 \
+		CC="$STAGE2"/clang \
+		LD="$STAGE2"/ld.lld \
+		AR="$STAGE2"/llvm-ar \
+		NM="$STAGE2"/llvm-nm \
+		LD=$3 \
+		STRIP="$STAGE2"/llvm-strip \
+		OBJCOPY="$STAGE2"/llvm-objcopy \
+		OBJDUMP="$STAGE2"/llvm-objdump \
+		OBJSIZE="$STAGE2"/llvm-size \
+		HOSTCC="$STAGE2"/clang \
+		HOSTCXX="$STAGE2"/clang++ \
+		HOSTAR="$STAGE2"/llvm-ar \
+		HOSTLD="$STAGE2"/ld.lld \
+		CROSS_COMPILE=$4 || exit ${?}
+}
+
 if [ -d "$LLVM_DIR"/ ]; then
 	cd $LLVM_DIR/
 	if ! git status; then
@@ -76,25 +184,28 @@ else
 	llvm_clone
 fi
 
-if [ -e linux-$LINUX_VER.tar.xz ]; then
-	msg "Existing linux tarball found, skipping download"
-else
-	msg "Downloading linux tarball"
-	wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$LINUX_VER.tar.xz"
+get_linux_5_tarball $LINUX_VER
+
+if [[ $EXTENDED_PGO -eq 1 ]]; then
+	msg "Extended PGO profiling enabled!"
+	msg "Downloading needed linux tar balls"
+	get_linux_5_tarball $LINUX_5_10_VER
+	get_linux_5_tarball $LINUX_5_4_VER
+	get_linux_4_tarball $LINUX_4_19_VER
+	get_linux_4_tarball $LINUX_4_14_VER
+	get_linux_4_tarball $LINUX_4_9_VER
 fi
 
-msg "Checking file integrity of the tarball"
-msg "File: linux-$LINUX_VER.tar.xz"
-msg "Algorithm: sha512"
-if ! echo "$LINUX_TAR_SHA512SUM linux-$LINUX_VER.tar.xz" | sha512sum -c -; then
-	msg "File integrity check: Failed" >&2
-	exit 1
-fi
+verify_and_extract_linux_tarball $LINUX_VER $LINUX_TAR_SHA512SUM
 
-msg "Extracting Linux tarball with tar"
-if ! pv "linux-$LINUX_VER.tar.xz" | tar -xJf-; then
-	msg "File Extraction: Failed" >&2
-	exit 1
+if [[ $EXTENDED_PGO -eq 1 ]]; then
+	msg "Extended PGO profiling enabled!"
+	msg "extracting tar balls for extended PGO profiling"
+	verify_and_extract_linux_tarball $LINUX_5_10_VER $LINUX_5_10_TAR_SHA512SUM
+	verify_and_extract_linux_tarball $LINUX_5_4_VER $LINUX_5_4_TAR_SHA512SUM
+	verify_and_extract_linux_tarball $LINUX_4_19_VER $LINUX_4_19_TAR_SHA512SUM
+	verify_and_extract_linux_tarball $LINUX_4_14_VER $LINUX_4_14_TAR_SHA512SUM
+	verify_and_extract_linux_tarball $LINUX_4_9_VER $LINUX_4_9_TAR_SHA512SUM
 fi
 
 mkdir -p "$BUILDDIR/llvm-build"
@@ -353,6 +464,26 @@ time make all -j$(nproc --all) \
 	HOSTAR="$STAGE2"/llvm-ar \
 	HOSTLD="$STAGE2"/ld.lld \
 	CROSS_COMPILE=arm-linux-gnueabi- || exit ${?}
+
+if [[ $EXTENDED_PGO -eq 1 ]]; then
+	msg "Extended PGO profiling enabled!"
+	msg "Starting Extended PGO training"
+	cd "$KERNEL_4_9_DIR"
+	extended_pgo_kramel_compile "4.9" "arm64" aarch64-linux-gnu-ld aarch64-linux-gnu-
+	cd "$KERNEL_4_14_DIR"
+	extended_pgo_kramel_compile "4.14" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
+	cd "$KERNEL_4_19_DIR"
+	extended_pgo_kramel_compile "4.19" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
+	cd "$KERNEL_5_4_DIR"
+	extended_pgo_kramel_compile "5.4" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
+	cd "$KERNEL_5_10_DIR"
+	extended_pgo_kramel_compile "5.10" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
+
+	# There are still some 32 bit qcom socs running 4.9 or lower
+	# So yeah
+	cd "$KERNEL_4_9_DIR"
+	extended_pgo_kramel_compile "4.9" "arm" arm-linux-gnueabi-ld arm-linux-gnueabi-gnu-
+fi
 
 # Merge training
 cd "$PROFILES"
