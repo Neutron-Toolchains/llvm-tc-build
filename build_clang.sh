@@ -243,8 +243,6 @@ fi
 cd "$OUT"
 CC=clang CXX=clang++ LD=ld.lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip \
 	OBJDUMP=llvm-objdump HOSTCC=clang HOSTLD=ld.lld HOSTAR=llvm-ar OBJCOPY=llvm-objcopy \
-	CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
-	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	cmake -G Ninja --log-level=NOTICE \
 	-DLLVM_TARGETS_TO_BUILD="X86" \
 	-DLLVM_ENABLE_PROJECTS="clang;lld;compiler-rt" \
@@ -273,8 +271,8 @@ CC=clang CXX=clang++ LD=ld.lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip
 	-DLLVM_CCACHE_BUILD=ON \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
-	-DCMAKE_C_FLAGS=-O3 \
-	-DCMAKE_CXX_FLAGS=-O3 \
+	-DCMAKE_C_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+	-DCMAKE_CXX_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
@@ -304,9 +302,7 @@ cd "$OUT"
 STOCK_PATH=$PATH
 MODDED_PATH="$STAGE1"/../../bin:$STAGE1:$PATH
 export PATH="$MODDED_PATH"
-CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
-	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
-	cmake -G Ninja --log-level=NOTICE \
+cmake -G Ninja --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron-Clang" \
 	-DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
 	-DCMAKE_BUILD_TYPE=Release \
@@ -346,6 +342,8 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DLLVM_VP_COUNTERS_PER_SITE=6 \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
+	-DCMAKE_C_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+	-DCMAKE_CXX_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
@@ -520,9 +518,7 @@ else
 	mkdir "$OUT"
 fi
 cd "$OUT"
-CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
-	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
-	cmake -G Ninja --log-level=NOTICE \
+cmake -G Ninja --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron-Clang" \
 	-DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
 	-DCMAKE_BUILD_TYPE=Release \
@@ -562,8 +558,8 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DLLVM_PROFDATA_FILE="$PROFILES"/clang.profdata \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
-	-DCMAKE_C_FLAGS=-O3 \
-	-DCMAKE_CXX_FLAGS=-O3 \
+	-DCMAKE_C_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+	-DCMAKE_CXX_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
