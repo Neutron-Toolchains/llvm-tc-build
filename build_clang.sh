@@ -267,6 +267,7 @@ CC=clang CXX=clang++ LD=ld.lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip
 	-DLLVM_ENABLE_WARNINGS=OFF \
 	-DLLVM_ENABLE_LTO=Thin \
 	-DLLVM_ENABLE_LLD=ON \
+	-DCMAKE_LINKER=ld.lld \
 	-DLLVM_TOOL_CLANG_BUILD=ON \
 	-DLLVM_TOOL_LLD_BUILD=ON \
 	-DLLVM_CCACHE_BUILD=ON \
@@ -327,6 +328,7 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DLLVM_ENABLE_TERMINFO=OFF \
 	-DLLVM_ENABLE_LTO=Thin \
 	-DLLVM_USE_LINKER="$STAGE1"/ld.lld \
+	-DCMAKE_LINKER="$STAGE1"/ld.lld \
 	-DCMAKE_C_COMPILER="$STAGE1"/../../bin/clang \
 	-DCMAKE_CXX_COMPILER="$STAGE1"/../../bin/clang++ \
 	-DCMAKE_RANLIB="$STAGE1"/../../bin/llvm-ranlib \
@@ -544,6 +546,7 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DLLVM_ENABLE_TERMINFO=OFF \
 	-DLLVM_ENABLE_LTO=Thin \
 	-DLLVM_USE_LINKER="$STAGE1"/ld.lld \
+	-DCMAKE_LINKER="$STAGE1"/ld.lld \
 	-DCMAKE_C_COMPILER="$STAGE1"/../../bin/clang \
 	-DCMAKE_CXX_COMPILER="$STAGE1"/../../bin/clang++ \
 	-DCMAKE_RANLIB="$STAGE1"/../../bin/llvm-ranlib \
