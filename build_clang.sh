@@ -331,6 +331,12 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DCMAKE_AR="$STAGE1"/../../bin/llvm-ar \
 	-DCLANG_TABLEGEN="$STAGE1"/../../bin/clang-tblgen \
 	-DLLVM_TABLEGEN="$STAGE1"/../../bin/llvm-tblgen \
+	-DCMAKE_ADDR2LINE="$STAGE1"/../../bin/llvm-addr2line \
+	-DCMAKE_NM="$STAGE1"/../../bin/llvm-nm \
+	-DCMAKE_OBJCOPY="$STAGE1"/../../bin/llvm-objcopy \
+	-DCMAKE_OBJDUMP="$STAGE1"/../../bin/llvm-objdump \
+	-DCMAKE_READELF="$STAGE1"/../../bin/llvm-readelf \
+	-DCMAKE_STRIP="$STAGE1"/../../bin/llvm-strip \
 	-DLLVM_BUILD_INSTRUMENTED=IR \
 	-DLLVM_BUILD_RUNTIME=OFF \
 	-DLLVM_VP_COUNTERS_PER_SITE=6 \
@@ -537,6 +543,12 @@ CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign
 	-DCMAKE_AR="$STAGE1"/../../bin/llvm-ar \
 	-DCLANG_TABLEGEN="$STAGE1"/../../bin/clang-tblgen \
 	-DLLVM_TABLEGEN="$STAGE1"/../../bin/llvm-tblgen \
+	-DCMAKE_ADDR2LINE="$STAGE1"/../../bin/llvm-addr2line \
+	-DCMAKE_NM="$STAGE1"/../../bin/llvm-nm \
+	-DCMAKE_OBJCOPY="$STAGE1"/../../bin/llvm-objcopy \
+	-DCMAKE_OBJDUMP="$STAGE1"/../../bin/llvm-objdump \
+	-DCMAKE_READELF="$STAGE1"/../../bin/llvm-readelf \
+	-DCMAKE_STRIP="$STAGE1"/../../bin/llvm-strip \
 	-DLLVM_PROFDATA_FILE="$PROFILES"/clang.profdata \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
