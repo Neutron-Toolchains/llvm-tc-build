@@ -241,8 +241,8 @@ else
 	mkdir "$OUT"
 fi
 cd "$OUT"
-CC=clang CXX=clang++ LD=lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip \
-	OBJDUMP=llvm-objdump HOSTCC=clang HOSTLD=lld HOSTAR=llvm-ar OBJCOPY=llvm-objcopy \
+CC=clang CXX=clang++ LD=ld.lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip \
+	OBJDUMP=llvm-objdump HOSTCC=clang HOSTLD=ld.lld HOSTAR=llvm-ar OBJCOPY=llvm-objcopy \
 	CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
 	cmake -G Ninja --log-level=NOTICE \
