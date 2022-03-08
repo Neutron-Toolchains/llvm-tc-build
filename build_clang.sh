@@ -300,7 +300,9 @@ else
 	mkdir "$OUT"
 fi
 cd "$OUT"
-export PATH=$STAGE1:$PATH
+STOCK_PATH=$PATH
+MODDED_PATH="$STAGE1"/../../bin:$STAGE1:$PATH
+export PATH="$MODDED_PATH"
 CFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
 	CXXFLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O2" \
 	cmake -G Ninja --log-level=NOTICE \
@@ -356,6 +358,8 @@ PROFILES="$OUT/profiles"
 rm -rf "$PROFILES"/*
 msg "Stage 2: Build End"
 msg "Stage 2: PGO Train Start"
+
+export PATH=$STAGE2:$STOCK_PATH
 
 # Train PGO
 cd "$KERNEL_DIR"
@@ -499,6 +503,9 @@ msg "Stage 2: PGO Training End"
 
 # Stage 3 (built with PGO profile data)
 msg "Stage 3 Build: Start"
+
+export PATH="$MODDED_PATH"
+
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage3"
 
