@@ -281,8 +281,8 @@ cmake -G Ninja --log-level=NOTICE \
 	-DLLVM_CCACHE_BUILD=ON \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
-	-DCMAKE_C_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
-	-DCMAKE_CXX_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -falign-functions=32 -flto=thin -fsplit-lto-unit -O3" \
+	-DCMAKE_C_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3" \
+	-DCMAKE_CXX_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3" \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
