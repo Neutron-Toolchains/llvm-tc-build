@@ -241,9 +241,7 @@ else
 	mkdir "$OUT"
 fi
 cd "$OUT"
-CC=clang CXX=clang++ LD=ld.lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip \
-	OBJDUMP=llvm-objdump HOSTCC=clang HOSTLD=ld.lld HOSTAR=llvm-ar OBJCOPY=llvm-objcopy \
-	cmake -G Ninja --log-level=NOTICE \
+cmake -G Ninja --log-level=NOTICE \
 	-DLLVM_TARGETS_TO_BUILD="X86" \
 	-DLLVM_ENABLE_PROJECTS="clang;lld;compiler-rt" \
 	-DCMAKE_BUILD_TYPE=Release \
@@ -264,8 +262,18 @@ CC=clang CXX=clang++ LD=ld.lld AR=llvm-ar AS=llvm-as NM=llvm-nm STRIP=llvm-strip
 	-DLLVM_ENABLE_BACKTRACES=OFF \
 	-DLLVM_ENABLE_WARNINGS=OFF \
 	-DLLVM_ENABLE_LTO=Thin \
-	-DLLVM_ENABLE_LLD=ON \
-	-DCMAKE_LINKER=ld.lld \
+	-DCMAKE_C_COMPILER=$(which clang) \
+	-DCMAKE_CXX_COMPILER=$(which clang++) \
+	-DCMAKE_AR=$(which llvm-ar) \
+	-DCMAKE_NM=$(which llvm-nm) \
+	-DCMAKE_STRIP=$(which llvm-strip) \
+	-DLLVM_USE_LINKER=$(which ld.lld) \
+	-DCMAKE_LINKER=$(which ld.lld) \
+	-DCMAKE_OBJCOPY=$(which llvm-objcopy) \
+	-DCMAKE_OBJDUMP=$(which llvm-objdump) \
+	-DCMAKE_RANLIB=$(which llvm-ranlib) \
+	-DCMAKE_READELF=$(which llvm-readelf) \
+	-DCMAKE_ADDR2LINE=$(which llvm-symbolizer) \
 	-DLLVM_TOOL_CLANG_BUILD=ON \
 	-DLLVM_TOOL_LLD_BUILD=ON \
 	-DLLVM_CCACHE_BUILD=ON \
