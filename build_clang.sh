@@ -504,7 +504,7 @@ if [[ $EXTENDED_PGO -eq 1 ]]; then
 	# There are still some 32 bit qcom socs running 4.9 or lower
 	# So yeah
 	cd "$KERNEL_4_9_DIR"
-	extended_pgo_kramel_compile "4.9" "arm" arm-linux-gnueabi-ld arm-linux-gnueabi-gnu-
+	extended_pgo_kramel_compile "4.9" "arm" arm-linux-gnueabi-ld arm-linux-gnueabi-
 fi
 
 # Merge training
