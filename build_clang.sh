@@ -241,6 +241,9 @@ else
 	mkdir "$OUT"
 fi
 cd "$OUT"
+
+LLVM_BIN_DIR=$(readlink -f $(which clang) | sed -e s/"\/clang//")
+
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DLLVM_TARGETS_TO_BUILD="X86" \
 	-DLLVM_ENABLE_PROJECTS="clang;lld;compiler-rt" \
@@ -263,18 +266,18 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DLLVM_ENABLE_BACKTRACES=OFF \
 	-DLLVM_ENABLE_WARNINGS=OFF \
 	-DLLVM_ENABLE_LTO=Thin \
-	-DCMAKE_C_COMPILER=$(which clang) \
-	-DCMAKE_CXX_COMPILER=$(which clang++) \
-	-DCMAKE_AR=$(which llvm-ar) \
-	-DCMAKE_NM=$(which llvm-nm) \
-	-DCMAKE_STRIP=$(which llvm-strip) \
-	-DLLVM_USE_LINKER=$(which ld.lld) \
-	-DCMAKE_LINKER=$(which ld.lld) \
-	-DCMAKE_OBJCOPY=$(which llvm-objcopy) \
-	-DCMAKE_OBJDUMP=$(which llvm-objdump) \
-	-DCMAKE_RANLIB=$(which llvm-ranlib) \
-	-DCMAKE_READELF=$(which llvm-readelf) \
-	-DCMAKE_ADDR2LINE=$(which llvm-symbolizer) \
+	-DCMAKE_C_COMPILER=$LLVM_BIN_DIR/clang \
+	-DCMAKE_CXX_COMPILER=$LLVM_BIN_DIR/clang++ \
+	-DCMAKE_AR=$LLVM_BIN_DIR/llvm-ar \
+	-DCMAKE_NM=$LLVM_BIN_DIR/llvm-nm \
+	-DCMAKE_STRIP=$LLVM_BIN_DIR/llvm-strip \
+	-DLLVM_USE_LINKER=$LLVM_BIN_DIR/ld.lld \
+	-DCMAKE_LINKER=$LLVM_BIN_DIR/ld.lld \
+	-DCMAKE_OBJCOPY=$LLVM_BIN_DIR/llvm-objcopy \
+	-DCMAKE_OBJDUMP=$LLVM_BIN_DIR/llvm-objdump \
+	-DCMAKE_RANLIB=$LLVM_BIN_DIR/llvm-ranlib \
+	-DCMAKE_READELF=$LLVM_BIN_DIR/llvm-readelf \
+	-DCMAKE_ADDR2LINE=$LLVM_BIN_DIR/llvm-addr2line \
 	-DLLVM_TOOL_CLANG_BUILD=ON \
 	-DLLVM_TOOL_LLD_BUILD=ON \
 	-DLLVM_CCACHE_BUILD=ON \
