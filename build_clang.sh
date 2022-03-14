@@ -241,7 +241,7 @@ else
 	mkdir "$OUT"
 fi
 cd "$OUT"
-cmake -G Ninja --log-level=NOTICE \
+cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DLLVM_TARGETS_TO_BUILD="X86" \
 	-DLLVM_ENABLE_PROJECTS="clang;lld;compiler-rt" \
 	-DCMAKE_BUILD_TYPE=Release \
@@ -312,7 +312,7 @@ cd "$OUT"
 STOCK_PATH=$PATH
 MODDED_PATH="$STAGE1"/../../bin:$STAGE1:$PATH
 export PATH="$MODDED_PATH"
-cmake -G Ninja --log-level=NOTICE \
+cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron-Clang" \
 	-DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
 	-DCMAKE_BUILD_TYPE=Release \
@@ -528,7 +528,7 @@ else
 	mkdir "$OUT"
 fi
 cd "$OUT"
-cmake -G Ninja --log-level=NOTICE \
+cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron-Clang" \
 	-DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
 	-DCMAKE_BUILD_TYPE=Release \
