@@ -285,16 +285,14 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
 	-DCMAKE_C_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3" \
 	-DCMAKE_CXX_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3" \
-	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
-msg "Installing to $OUT/install"
-ninja install || (
-	msg "Could not install project!"
+ninja || (
+	msg "Could not build project!"
 	exit 1
 )
 
-STAGE1="$LLVM_BUILD/stage1/install/bin"
+STAGE1="$LLVM_BUILD/stage1/bin"
 msg "Stage 1 Build: End"
 
 # Stage 2 (to enable collecting profiling data)
@@ -312,7 +310,7 @@ else
 fi
 cd "$OUT"
 STOCK_PATH=$PATH
-MODDED_PATH="$STAGE1"/../../bin:$STAGE1:$PATH
+MODDED_PATH=$STAGE1/bin:$STAGE1:$PATH
 export PATH="$MODDED_PATH"
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron" \
@@ -335,20 +333,20 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCOMPILER_RT_BUILD_XRAY=OFF \
 	-DLLVM_ENABLE_TERMINFO=OFF \
 	-DLLVM_ENABLE_LTO=Thin \
-	-DLLVM_USE_LINKER="$STAGE1"/ld.lld \
-	-DCMAKE_LINKER="$STAGE1"/ld.lld \
-	-DCMAKE_C_COMPILER="$STAGE1"/../../bin/clang \
-	-DCMAKE_CXX_COMPILER="$STAGE1"/../../bin/clang++ \
-	-DCMAKE_RANLIB="$STAGE1"/../../bin/llvm-ranlib \
-	-DCMAKE_AR="$STAGE1"/../../bin/llvm-ar \
-	-DCLANG_TABLEGEN="$STAGE1"/../../bin/clang-tblgen \
-	-DLLVM_TABLEGEN="$STAGE1"/../../bin/llvm-tblgen \
-	-DCMAKE_ADDR2LINE="$STAGE1"/../../bin/llvm-addr2line \
-	-DCMAKE_NM="$STAGE1"/../../bin/llvm-nm \
-	-DCMAKE_OBJCOPY="$STAGE1"/../../bin/llvm-objcopy \
-	-DCMAKE_OBJDUMP="$STAGE1"/../../bin/llvm-objdump \
-	-DCMAKE_READELF="$STAGE1"/../../bin/llvm-readelf \
-	-DCMAKE_STRIP="$STAGE1"/../../bin/llvm-strip \
+	-DCMAKE_C_COMPILER=$STAGE1/clang \
+	-DCMAKE_CXX_COMPILER=$STAGE1/clang++ \
+	-DCMAKE_AR=$STAGE1/llvm-ar \
+	-DCMAKE_NM=$STAGE1/llvm-nm \
+	-DCMAKE_STRIP=$STAGE1/llvm-strip \
+	-DLLVM_USE_LINKER=$STAGE1/ld.lld \
+	-DCMAKE_LINKER=$STAGE1/ld.lld \
+	-DCMAKE_OBJCOPY=$STAGE1/llvm-objcopy \
+	-DCMAKE_OBJDUMP=$STAGE1/llvm-objdump \
+	-DCMAKE_RANLIB=$STAGE1/llvm-ranlib \
+	-DCMAKE_READELF=$STAGE1/llvm-readelf \
+	-DCMAKE_ADDR2LINE=$STAGE1/llvm-addr2line \
+	-DCLANG_TABLEGEN=$STAGE1/clang-tblgen \
+	-DLLVM_TABLEGEN=$STAGE1/llvm-tblgen \
 	-DLLVM_BUILD_INSTRUMENTED=IR \
 	-DLLVM_BUILD_RUNTIME=OFF \
 	-DLLVM_VP_COUNTERS_PER_SITE=6 \
@@ -553,20 +551,20 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCOMPILER_RT_BUILD_XRAY=OFF \
 	-DLLVM_ENABLE_TERMINFO=OFF \
 	-DLLVM_ENABLE_LTO=Thin \
-	-DLLVM_USE_LINKER="$STAGE1"/ld.lld \
-	-DCMAKE_LINKER="$STAGE1"/ld.lld \
-	-DCMAKE_C_COMPILER="$STAGE1"/../../bin/clang \
-	-DCMAKE_CXX_COMPILER="$STAGE1"/../../bin/clang++ \
-	-DCMAKE_RANLIB="$STAGE1"/../../bin/llvm-ranlib \
-	-DCMAKE_AR="$STAGE1"/../../bin/llvm-ar \
-	-DCLANG_TABLEGEN="$STAGE1"/../../bin/clang-tblgen \
-	-DLLVM_TABLEGEN="$STAGE1"/../../bin/llvm-tblgen \
-	-DCMAKE_ADDR2LINE="$STAGE1"/../../bin/llvm-addr2line \
-	-DCMAKE_NM="$STAGE1"/../../bin/llvm-nm \
-	-DCMAKE_OBJCOPY="$STAGE1"/../../bin/llvm-objcopy \
-	-DCMAKE_OBJDUMP="$STAGE1"/../../bin/llvm-objdump \
-	-DCMAKE_READELF="$STAGE1"/../../bin/llvm-readelf \
-	-DCMAKE_STRIP="$STAGE1"/../../bin/llvm-strip \
+	-DCMAKE_C_COMPILER=$STAGE1/clang \
+	-DCMAKE_CXX_COMPILER=$STAGE1/clang++ \
+	-DCMAKE_AR=$STAGE1/llvm-ar \
+	-DCMAKE_NM=$STAGE1/llvm-nm \
+	-DCMAKE_STRIP=$STAGE1/llvm-strip \
+	-DLLVM_USE_LINKER=$STAGE1/ld.lld \
+	-DCMAKE_LINKER=$STAGE1/ld.lld \
+	-DCMAKE_OBJCOPY=$STAGE1/llvm-objcopy \
+	-DCMAKE_OBJDUMP=$STAGE1/llvm-objdump \
+	-DCMAKE_RANLIB=$STAGE1/llvm-ranlib \
+	-DCMAKE_READELF=$STAGE1/llvm-readelf \
+	-DCMAKE_ADDR2LINE=$STAGE1/llvm-addr2line \
+	-DCLANG_TABLEGEN=$STAGE1/clang-tblgen \
+	-DLLVM_TABLEGEN=$STAGE1/llvm-tblgen \
 	-DLLVM_PROFDATA_FILE="$PROFILES"/clang.profdata \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
