@@ -287,7 +287,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCMAKE_CXX_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3" \
 	"$LLVM_PROJECT"
 
-ninja || (
+ninja -j$(nproc --all) || (
 	msg "Could not build project!"
 	exit 1
 )
@@ -358,7 +358,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	"$LLVM_PROJECT"
 
 msg "Installing to $OUT/install"
-ninja install || (
+ninja install -j$(nproc --all) || (
 	msg "Could not install project!"
 	exit 1
 )
@@ -574,7 +574,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	"$LLVM_PROJECT"
 
 msg "Installing to $OUT/install"
-ninja install || (
+ninja install -j$(nproc --all) || (
 	msg "Could not install project!"
 	exit 1
 )
