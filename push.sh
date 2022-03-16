@@ -2,8 +2,6 @@
 # Script to push final built clang to my repo
 set -e
 
-#https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=
-
 CURRENT_DIR=$(pwd)
 BINUTILS_DIR="$CURRENT_DIR/binutils-gdb"
 LLVM_DIR="$CURRENT_DIR/llvm-project"
@@ -13,13 +11,13 @@ INSTALL_DIR="$CURRENT_DIR/install"
 release_date="$(date "+%B %-d, %Y")" # "Month day, year" format
 
 neutron_clone() {
-	if ! git clone https://github.com/Neutron-Toolchains/neutron-clang.git; then
+	if ! git clone git@gitlab.com:dakkshesh07/neutron-clang.git; then
 		exit 1
 	fi
 }
 
 neutron_pull() {
-	if ! git pull https://github.com/Neutron-Toolchains/neutron-clang.git; then
+	if ! git pull git@gitlab.com:dakkshesh07/neutron-clang.git; then
 		exit 1
 	fi
 }
