@@ -257,7 +257,7 @@ else
 fi
 cd "$OUT"
 
-LLVM_BIN_DIR=$(readlink -f $(which clang) | sed -e s/"\/clang//")
+LLVM_BIN_DIR=$(readlink -f $(which clang) | rev | cut -d'/' -f2- | rev)
 
 OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
 
