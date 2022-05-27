@@ -496,11 +496,6 @@ if [[ $EXTENDED_PGO -eq 1 ]]; then
 	extended_pgo_kramel_compile "5.4" "arm64" aarch64-linux-gnu-
 	cd "$KERNEL_5_10_DIR"
 	extended_pgo_kramel_compile "5.10" "arm64" aarch64-linux-gnu-
-
-	# There are still some 32 bit qcom socs running 4.9 or lower
-	# So yeah
-	cd "$KERNEL_4_9_DIR"
-	extended_pgo_kramel_compile "4.9" "arm" arm-linux-gnueabi-
 fi
 
 # Merge training
