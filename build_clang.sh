@@ -29,6 +29,10 @@ CLEAN_BUILD=3
 EXTENDED_PGO=1
 POLLY_OPT=1
 
+# DO NOT CHANGE
+USE_SYSTEM_BINUTILS_64=1
+USE_SYSTEM_BINUTILS_32=1
+
 if [[ $POLLY_OPT -eq 1 ]]; then
 	POLLY_OPT_FLAGS="-mllvm -polly -mllvm -polly-run-dce \
 				-mllvm -polly-run-inliner \
@@ -47,6 +51,8 @@ fi
 
 LLVM_DIR="$BUILDDIR/llvm-project"
 BINUTILS_DIR="$BUILDDIR/binutils-gdb"
+TEMP_BINTUILS_BUILD="$BUILDDIR/temp-binutils-build"
+TEMP_BINTUILS_INSTALL="$BUILDDIR/temp-binutils"
 KERNEL_DIR="$BUILDDIR/linux-$LINUX_VER"
 
 KERNEL_4_9_DIR="$BUILDDIR/linux-$LINUX_4_9_VER"
@@ -225,6 +231,9 @@ fi
 
 mkdir -p "$BUILDDIR/llvm-build"
 
+mkdir -p "$TEMP_BINTUILS_BUILD"
+mkdir -p "$TEMP_BINTUILS_INSTALL"
+
 if [ -d "$BINUTILS_DIR"/ ]; then
 	cd $BINUTILS_DIR/
 	if ! git status; then
@@ -241,6 +250,47 @@ else
 	msg "cloning GNU binutils repo"
 	binutils_clone
 fi
+
+build_temp_binutils() {
+	rm -rf $TEMP_BINTUILS_BUILD
+	mkdir -p $TEMP_BINTUILS_BUILD
+	if [ "$1" = "aarch64-linux-gnu" ]; then
+		USE_SYSTEM_BINUTILS_64=0
+	else
+		USE_SYSTEM_BINUTILS_32=0
+	fi
+	cd $TEMP_BINTUILS_BUILD
+	"$BINUTILS_DIR"/configure \
+		CC="gcc" \
+		CXX="g++" \
+		CFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+		CXXFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+		LDFLAGS="-O3" \
+		--target=$1 \
+		--prefix=$TEMP_BINTUILS_INSTALL \
+		--disable-compressed-debug-sections \
+		--disable-gdb \
+		--disable-gdbserver \
+		--disable-docs \
+		--disable-multilib \
+		--disable-werror \
+		--disable-nls \
+		--with-gnu-as \
+		--with-gnu-ld \
+		--enable-lto \
+		--enable-deterministic-archives \
+		--enable-new-dtags \
+		--enable-plugins \
+		--enable-gold \
+		--enable-threads \
+		--with-system-zlib \
+		--enable-ld=default \
+		--quiet \
+		--with-pkgversion="Neutron Binutils"
+
+	make -j$(($(nproc --all) + 2))
+	make install -j$(($(nproc --all) + 2))
+}
 
 LLVM_PROJECT="$LLVM_DIR/llvm"
 
@@ -338,7 +388,7 @@ else
 fi
 cd "$OUT"
 STOCK_PATH=$PATH
-MODDED_PATH=$STAGE1/bin:$STAGE1:$PATH
+MODDED_PATH="$STAGE1/bin:$STAGE1:$PATH"
 export PATH="$MODDED_PATH"
 if [[ $POLLY_OPT -eq 1 ]]; then
 	OPT_FLAGS+="  $POLLY_OPT_FLAGS"
@@ -406,7 +456,22 @@ rm -rf "$PROFILES"/*
 msg "Stage 2: Build End"
 msg "Stage 2: PGO Train Start"
 
-export PATH=$STAGE2:$STOCK_PATH
+command -v aarch64-linux-gnu-as &>/dev/null || build_temp_binutils aarch64-linux-gnu
+command -v arm-linux-gnueabi-as &>/dev/null || build_temp_binutils arm-linux-gnueabi
+
+if [[ $USE_SYSTEM_BINUTILS_64 -eq 1 ]]; then
+	BINTUILS_64_BIN_DIR=$(readlink -f $(which aarch64-linux-gnu-as) | rev | cut -d'/' -f2- | rev)
+else
+	BINTUILS_64_BIN_DIR="$TEMP_BINTUILS_INSTALL/bin"
+fi
+
+if [[ $USE_SYSTEM_BINUTILS_32 -eq 1 ]]; then
+	BINTUILS_32_BIN_DIR=$(readlink -f $(which arm-linux-gnueabi-as) | rev | cut -d'/' -f2- | rev)
+else
+	BINTUILS_32_BIN_DIR="$TEMP_BINTUILS_INSTALL/bin"
+fi
+
+export PATH="$STAGE2:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
 
 # Train PGO
 cd "$KERNEL_DIR"
@@ -540,6 +605,9 @@ fi
 # Merge training
 cd "$PROFILES"
 "$STAGE2"/llvm-profdata merge -output=clang.profdata *
+
+rm -rf "$TEMP_BINTUILS_BUILD"
+rm -rf "$TEMP_BINTUILS_INSTALL"
 
 msg "Stage 2: PGO Training End"
 
