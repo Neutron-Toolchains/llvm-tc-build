@@ -24,8 +24,8 @@ build() {
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
-			CFLAGS="-march=x86-64 -mtune=generic -flto -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
-			CXXFLAGS="-march=x86-64 -mtune=generic -flto -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+			CFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+			CXXFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
 			LDFLAGS="-O3" \
 			--target=x86_64-pc-linux-gnu \
 			--prefix=$INSTALL_DIR \
@@ -52,8 +52,8 @@ build() {
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
-			CFLAGS="-march=x86-64 -mtune=generic -flto -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
-			CXXFLAGS="-march=x86-64 -mtune=generic -flto -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+			CFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+			CXXFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
 			LDFLAGS="-O3" \
 			--target=aarch64-linux-gnu \
 			--prefix=$INSTALL_DIR \
@@ -80,8 +80,8 @@ build() {
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
-			CFLAGS="-march=x86-64 -mtune=generic -flto -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
-			CXXFLAGS="-march=x86-64 -mtune=generic -flto -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+			CFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+			CXXFLAGS="-march=x86-64 -mtune=generic -flto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
 			LDFLAGS="-O3" \
 			--target=arm-linux-gnueabi \
 			--prefix=$INSTALL_DIR \
