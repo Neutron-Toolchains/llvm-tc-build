@@ -312,7 +312,7 @@ LLVM_BIN_DIR=$(readlink -f $(which clang) | rev | cut -d'/' -f2- | rev)
 OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-	STAGE1_PROJS=" clang;lld;compiler-rt;polly"
+	STAGE1_PROJS="clang;lld;compiler-rt;polly"
 else
 	STAGE1_PROJS="clang;lld;compiler-rt"
 fi
