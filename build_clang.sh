@@ -34,19 +34,7 @@ USE_SYSTEM_BINUTILS_64=1
 USE_SYSTEM_BINUTILS_32=1
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-	POLLY_OPT_FLAGS="-mllvm -polly -mllvm -polly-run-dce \
-				-mllvm -polly-run-inliner \
-				-mllvm -polly-ast-use-context \
-				-mllvm -polly-detect-keep-going \
-				-mllvm -polly-vectorizer=stripmine \
-				-mllvm -polly-invariant-load-hoisting \
-				-mllvm -polly-loopfusion-greedy=1 \
-				-mllvm -polly-reschedule=1 \
-				-mllvm -polly-postopts=1 \
-				-mllvm -polly-num-threads=0 \
-				-mllvm -polly-omp-backend=LLVM \
-				-mllvm -polly-scheduling=dynamic \
-				-mllvm -polly-scheduling-chunksize=1"
+	POLLY_OPT_FLAGS="-mllvm -polly -mllvm -polly-run-dce -mllvm -polly-run-inliner -mllvm -polly-ast-use-context -mllvm -polly-detect-keep-going -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy=1 -mllvm -polly-reschedule=1 -mllvm -polly-postopts=1 -mllvm -polly-num-threads=0 -mllvm -polly-omp-backend=LLVM -mllvm -polly-scheduling=dynamic -mllvm -polly-scheduling-chunksize=1"
 fi
 
 LLVM_DIR="$BUILDDIR/llvm-project"
@@ -310,6 +298,7 @@ cd "$OUT"
 LLVM_BIN_DIR=$(readlink -f $(which clang) | rev | cut -d'/' -f2- | rev)
 
 OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
+OPT_FLAGS_LD="-O3 --lto-O3 -fuse-ld=$LLVM_BIN_DIR/ld.lld"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
 	STAGE1_PROJS="clang;lld;compiler-rt;polly"
@@ -357,12 +346,11 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
 	-DCMAKE_C_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_EXE_LINKER_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_MODULE_LINKER_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_SHARED_LINKER_FLAGS="$OPT_FLAGS" \
 	-DCMAKE_ASM_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_Fortran_FLAGS="$OPT_FLAGS" \
 	-DCMAKE_CXX_FLAGS="$OPT_FLAGS" \
+	-DCMAKE_EXE_LINKER_FLAGS="$OPT_FLAGS_LD" \
+	-DCMAKE_MODULE_LINKER_FLAGS="$OPT_FLAGS_LD" \
+	-DCMAKE_SHARED_LINKER_FLAGS="$OPT_FLAGS_LD" \
 	"$LLVM_PROJECT"
 
 ninja -j$(nproc --all) || (
@@ -391,8 +379,11 @@ STOCK_PATH=$PATH
 MODDED_PATH="$STAGE1/bin:$STAGE1:$PATH"
 export PATH="$MODDED_PATH"
 if [[ $POLLY_OPT -eq 1 ]]; then
-	OPT_FLAGS+="  $POLLY_OPT_FLAGS"
+	OPT_FLAGS="$OPT_FLAGS $POLLY_OPT_FLAGS"
 fi
+
+OPT_FLAGS_LD="-O3 --lto-O3 -fuse-ld=$STAGE1/ld.lld"
+
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCLANG_VENDOR="Neutron" \
 	-DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
@@ -435,12 +426,11 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
 	-DCMAKE_C_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_EXE_LINKER_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_MODULE_LINKER_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_SHARED_LINKER_FLAGS="$OPT_FLAGS" \
 	-DCMAKE_ASM_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_Fortran_FLAGS="$OPT_FLAGS" \
 	-DCMAKE_CXX_FLAGS="$OPT_FLAGS" \
+	-DCMAKE_EXE_LINKER_FLAGS="$OPT_FLAGS_LD" \
+	-DCMAKE_MODULE_LINKER_FLAGS="$OPT_FLAGS_LD" \
+	-DCMAKE_SHARED_LINKER_FLAGS="$OPT_FLAGS_LD" \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
@@ -669,12 +659,11 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DLLVM_PARALLEL_COMPILE_JOBS=$(nproc --all) \
 	-DLLVM_PARALLEL_LINK_JOBS=$(nproc --all) \
 	-DCMAKE_C_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_EXE_LINKER_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_MODULE_LINKER_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_SHARED_LINKER_FLAGS="$OPT_FLAGS" \
 	-DCMAKE_ASM_FLAGS="$OPT_FLAGS" \
-	-DCMAKE_Fortran_FLAGS="$OPT_FLAGS" \
 	-DCMAKE_CXX_FLAGS="$OPT_FLAGS" \
+	-DCMAKE_EXE_LINKER_FLAGS="$OPT_FLAGS_LD" \
+	-DCMAKE_MODULE_LINKER_FLAGS="$OPT_FLAGS_LD" \
+	-DCMAKE_SHARED_LINKER_FLAGS="$OPT_FLAGS_LD" \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
