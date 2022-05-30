@@ -145,9 +145,9 @@ extended_pgo_kramel_compile() {
 		LLVM=1 \
 		ARCH=$2 \
 		CC="$STAGE2"/clang \
-		LD="$STAGE2"/ld.lld \
 		AR="$STAGE2"/llvm-ar \
 		NM="$STAGE2"/llvm-nm \
+		LD=$3 \
 		STRIP="$STAGE2"/llvm-strip \
 		OBJCOPY="$STAGE2"/llvm-objcopy \
 		OBJDUMP="$STAGE2"/llvm-objdump \
@@ -156,15 +156,15 @@ extended_pgo_kramel_compile() {
 		HOSTCXX="$STAGE2"/clang++ \
 		HOSTAR="$STAGE2"/llvm-ar \
 		HOSTLD="$STAGE2"/ld.lld \
-		CROSS_COMPILE=$3
+		CROSS_COMPILE=$4
 
 	time make all -j$(nproc --all) \
 		LLVM=1 \
 		ARCH=$2 \
 		CC="$STAGE2"/clang \
-		LD="$STAGE2"/ld.lld \
 		AR="$STAGE2"/llvm-ar \
 		NM="$STAGE2"/llvm-nm \
+		LD=$3 \
 		STRIP="$STAGE2"/llvm-strip \
 		OBJCOPY="$STAGE2"/llvm-objcopy \
 		OBJDUMP="$STAGE2"/llvm-objdump \
@@ -173,7 +173,7 @@ extended_pgo_kramel_compile() {
 		HOSTCXX="$STAGE2"/clang++ \
 		HOSTAR="$STAGE2"/llvm-ar \
 		HOSTLD="$STAGE2"/ld.lld \
-		CROSS_COMPILE=$3 || exit ${?}
+		CROSS_COMPILE=$4 || exit ${?}
 }
 
 if [ -d "$LLVM_DIR"/ ]; then
@@ -581,15 +581,15 @@ if [[ $EXTENDED_PGO -eq 1 ]]; then
 	msg "Extended PGO profiling enabled!"
 	msg "Starting Extended PGO training"
 	cd "$KERNEL_4_9_DIR"
-	extended_pgo_kramel_compile "4.9" "arm64" aarch64-linux-gnu-
+	extended_pgo_kramel_compile "4.9" "arm64" aarch64-linux-gnu-ld aarch64-linux-gnu-
 	cd "$KERNEL_4_14_DIR"
-	extended_pgo_kramel_compile "4.14" "arm64" aarch64-linux-gnu-
+	extended_pgo_kramel_compile "4.14" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
 	cd "$KERNEL_4_19_DIR"
-	extended_pgo_kramel_compile "4.19" "arm64" aarch64-linux-gnu-
+	extended_pgo_kramel_compile "4.19" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
 	cd "$KERNEL_5_4_DIR"
-	extended_pgo_kramel_compile "5.4" "arm64" aarch64-linux-gnu-
+	extended_pgo_kramel_compile "5.4" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
 	cd "$KERNEL_5_10_DIR"
-	extended_pgo_kramel_compile "5.10" "arm64" aarch64-linux-gnu-
+	extended_pgo_kramel_compile "5.10" "arm64" "$STAGE2"/ld.lld aarch64-linux-gnu-
 fi
 
 # Merge training
