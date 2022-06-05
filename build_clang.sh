@@ -51,16 +51,13 @@ KERNEL_5_10_DIR="$BUILDDIR/linux-$LINUX_5_10_VER"
 
 LLVM_BUILD="$BUILDDIR/llvm-build"
 
-PERSONAL=0
-msg() {
-	if [[ $PERSONAL -eq 1 ]]; then
-		telegram-send "$1"
-	else
-		echo "==> $1"
-	fi
-}
+if [[ $CI -eq 1 ]]; then
+	telegram-send --format html "\
+		<b>🔨 Neutron Clang Build Started</b>
+		Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>"
+fi
 
-msg "Starting LLVM Build"
+echo "Starting LLVM Build"
 
 rm -rf $KERNEL_DIR
 
@@ -78,69 +75,69 @@ fi
 
 llvm_clone() {
 	if ! git clone https://github.com/llvm/llvm-project.git; then
-		msg "llvm-project git clone: Failed" >&2
+		echo "llvm-project git clone: Failed" >&2
 		exit 1
 	fi
 }
 
 llvm_pull() {
 	if ! git pull https://github.com/llvm/llvm-project.git; then
-		msg "llvm-project git Pull: Failed" >&2
+		echo "llvm-project git Pull: Failed" >&2
 		exit 1
 	fi
 }
 
 binutils_clone() {
 	if ! git clone https://sourceware.org/git/binutils-gdb.git -b binutils-$BINUTILS_VER-branch; then
-		msg "binutils git clone: Failed" >&2
+		echo "binutils git clone: Failed" >&2
 		exit 1
 	fi
 }
 
 binutils_pull() {
 	if ! git pull https://sourceware.org/git/binutils-gdb.git binutils-$BINUTILS_VER-branch; then
-		msg "binutils git Pull: Failed" >&2
+		echo "binutils git Pull: Failed" >&2
 		exit 1
 	fi
 }
 
 get_linux_5_tarball() {
 	if [ -e linux-$1.tar.xz ]; then
-		msg "Existing linux-$1 tarball found, skipping download"
+		echo "Existing linux-$1 tarball found, skipping download"
 	else
-		msg "Downloading linux-$1 tarball"
+		echo "Downloading linux-$1 tarball"
 		wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$1.tar.xz"
 	fi
 }
 
 get_linux_4_tarball() {
 	if [ -e linux-$1.tar.xz ]; then
-		msg "Existing linux-$1 tarball found, skipping download"
+		echo "Existing linux-$1 tarball found, skipping download"
 	else
-		msg "Downloading linux-$1 tarball"
+		echo "Downloading linux-$1 tarball"
 		wget "https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$1.tar.xz"
 	fi
 }
 
 verify_and_extract_linux_tarball() {
-	msg "Checking file integrity of the tarball"
-	msg "File: linux-$1.tar.xz"
-	msg "Algorithm: sha512"
+	echo "Checking file integrity of the tarball"
+	echo "File: linux-$1.tar.xz"
+	echo "Algorithm: sha512"
 	if ! echo "$2 linux-$1.tar.xz" | sha512sum -c -; then
-		msg "File integrity check: Failed" >&2
+		echo "File integrity check: Failed" >&2
 		exit 1
 	fi
 
-	msg "Extracting Linux tarball with tar"
+	echo "Extracting Linux tarball with tar"
 	if ! pv "linux-$1.tar.xz" | tar -xJf-; then
-		msg "File Extraction: Failed" >&2
+		echo "File Extraction: Failed" >&2
 		exit 1
 	fi
 }
 
 extended_pgo_kramel_compile() {
 	clear
-	msg "Training Kernel Version=$1 Arch=$2"
+	echo "Training Kernel Version=$1 Arch=$2"
 	make distclean defconfig \
 		LLVM=1 \
 		ARCH=$2 \
@@ -179,25 +176,25 @@ extended_pgo_kramel_compile() {
 if [ -d "$LLVM_DIR"/ ]; then
 	cd $LLVM_DIR/
 	if ! git status; then
-		msg "llvm-project dir found but not a git repo, recloning"
+		echo "llvm-project dir found but not a git repo, recloning"
 		cd $BUILDDIR
 		llvm_clone
 	else
-		msg "Existing llvm repo found, skipping clone"
-		msg "Fetching new changes"
+		echo "Existing llvm repo found, skipping clone"
+		echo "Fetching new changes"
 		llvm_pull
 		cd $BUILDDIR
 	fi
 else
-	msg "cloning llvm project repo"
+	echo "cloning llvm project repo"
 	llvm_clone
 fi
 
 get_linux_5_tarball $LINUX_VER
 
 if [[ $EXTENDED_PGO -eq 1 ]]; then
-	msg "Extended PGO profiling enabled!"
-	msg "Downloading needed linux tar balls"
+	echo "Extended PGO profiling enabled!"
+	echo "Downloading needed linux tar balls"
 	get_linux_5_tarball $LINUX_5_10_VER
 	get_linux_5_tarball $LINUX_5_4_VER
 	get_linux_4_tarball $LINUX_4_19_VER
@@ -208,8 +205,8 @@ fi
 verify_and_extract_linux_tarball $LINUX_VER $LINUX_TAR_SHA512SUM
 
 if [[ $EXTENDED_PGO -eq 1 ]]; then
-	msg "Extended PGO profiling enabled!"
-	msg "extracting tar balls for extended PGO profiling"
+	echo "Extended PGO profiling enabled!"
+	echo "extracting tar balls for extended PGO profiling"
 	verify_and_extract_linux_tarball $LINUX_5_10_VER $LINUX_5_10_TAR_SHA512SUM
 	verify_and_extract_linux_tarball $LINUX_5_4_VER $LINUX_5_4_TAR_SHA512SUM
 	verify_and_extract_linux_tarball $LINUX_4_19_VER $LINUX_4_19_TAR_SHA512SUM
@@ -225,17 +222,17 @@ mkdir -p "$TEMP_BINTUILS_INSTALL"
 if [ -d "$BINUTILS_DIR"/ ]; then
 	cd $BINUTILS_DIR/
 	if ! git status; then
-		msg "GNU binutils dir found but not a git repo, recloning"
+		echo "GNU binutils dir found but not a git repo, recloning"
 		cd $BUILDDIR
 		binutils_clone
 	else
-		msg "Existing binutils repo found, skipping clone"
-		msg "Fetching new changes"
+		echo "Existing binutils repo found, skipping clone"
+		echo "Fetching new changes"
 		binutils_pull
 		cd $BUILDDIR
 	fi
 else
-	msg "cloning GNU binutils repo"
+	echo "cloning GNU binutils repo"
 	binutils_clone
 fi
 
@@ -282,7 +279,7 @@ build_temp_binutils() {
 
 LLVM_PROJECT="$LLVM_DIR/llvm"
 
-msg "Starting Stage 1 Build"
+echo "Starting Stage 1 Build"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage1"
 if [ -d "$OUT" ]; then
@@ -354,15 +351,15 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	"$LLVM_PROJECT"
 
 ninja -j$(nproc --all) || (
-	msg "Could not build project!"
+	echo "Could not build project!"
 	exit 1
 )
 
 STAGE1="$LLVM_BUILD/stage1/bin"
-msg "Stage 1 Build: End"
+echo "Stage 1 Build: End"
 
 # Stage 2 (to enable collecting profiling data)
-msg "Stage 2: Build Start"
+echo "Stage 2: Build Start"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage2-prof-gen"
 
@@ -434,17 +431,17 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
-msg "Installing to $OUT/install"
+echo "Installing to $OUT/install"
 ninja install -j$(nproc --all) || (
-	msg "Could not install project!"
+	echo "Could not install project!"
 	exit 1
 )
 
 STAGE2="$OUT/install/bin"
 PROFILES="$OUT/profiles"
 rm -rf "$PROFILES"/*
-msg "Stage 2: Build End"
-msg "Stage 2: PGO Train Start"
+echo "Stage 2: Build End"
+echo "Stage 2: PGO Train Start"
 
 command -v aarch64-linux-gnu-as &>/dev/null || build_temp_binutils aarch64-linux-gnu
 command -v arm-linux-gnueabi-as &>/dev/null || build_temp_binutils arm-linux-gnueabi
@@ -466,7 +463,7 @@ export PATH="$STAGE2:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
 # Train PGO
 cd "$KERNEL_DIR"
 
-msg "Training x86"
+echo "Training x86"
 make distclean defconfig \
 	LLVM=1 \
 	CC="$STAGE2"/clang \
@@ -501,7 +498,7 @@ time make all -j$(nproc --all) \
 
 clear
 
-msg "Training arm64"
+echo "Training arm64"
 make distclean defconfig \
 	LLVM=1 \
 	ARCH=arm64 \
@@ -540,7 +537,7 @@ time make all -j$(nproc --all) \
 
 clear
 
-msg "Training arm"
+echo "Training arm"
 make distclean defconfig \
 	LLVM=1 \
 	ARCH=arm \
@@ -578,8 +575,8 @@ time make all -j$(nproc --all) \
 	CROSS_COMPILE=arm-linux-gnueabi- || exit ${?}
 
 if [[ $EXTENDED_PGO -eq 1 ]]; then
-	msg "Extended PGO profiling enabled!"
-	msg "Starting Extended PGO training"
+	echo "Extended PGO profiling enabled!"
+	echo "Starting Extended PGO training"
 	cd "$KERNEL_4_9_DIR"
 	extended_pgo_kramel_compile "4.9" "arm64" aarch64-linux-gnu-ld aarch64-linux-gnu-
 	cd "$KERNEL_4_14_DIR"
@@ -599,10 +596,10 @@ cd "$PROFILES"
 rm -rf "$TEMP_BINTUILS_BUILD"
 rm -rf "$TEMP_BINTUILS_INSTALL"
 
-msg "Stage 2: PGO Training End"
+echo "Stage 2: PGO Training End"
 
 # Stage 3 (built with PGO profile data)
-msg "Stage 3 Build: Start"
+echo "Stage 3 Build: Start"
 
 export PATH="$MODDED_PATH"
 
@@ -667,16 +664,16 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCMAKE_INSTALL_PREFIX="$OUT/install" \
 	"$LLVM_PROJECT"
 
-msg "Installing to $OUT/install"
+echo "Installing to $OUT/install"
 ninja install -j$(nproc --all) || (
-	msg "Could not install project!"
+	echo "Could not install project!"
 	exit 1
 )
 
 STAGE3="$OUT/install/bin"
-msg "Stage 3 Build: End"
+echo "Stage 3 Build: End"
 
-msg "Moving stage 3 install dir to build dir"
+echo "Moving stage 3 install dir to build dir"
 mv $OUT/install $BUILDDIR/install/
-msg "LLVM build finished. Final toolchain installed at:"
-msg "$BUILDDIR/install"
+echo "LLVM build finished. Final toolchain installed at:"
+echo "$BUILDDIR/install"
