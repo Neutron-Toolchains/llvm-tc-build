@@ -136,7 +136,6 @@ verify_and_extract_linux_tarball() {
 }
 
 extended_pgo_kramel_compile() {
-	clear
 	echo "Training Kernel Version=$1 Arch=$2"
 	make distclean defconfig \
 		LLVM=1 \
@@ -496,8 +495,6 @@ time make all -j$(nproc --all) \
 	HOSTAR="$STAGE2"/llvm-ar \
 	HOSTLD="$STAGE2"/ld.lld || exit ${?}
 
-clear
-
 echo "Training arm64"
 make distclean defconfig \
 	LLVM=1 \
@@ -534,8 +531,6 @@ time make all -j$(nproc --all) \
 	HOSTAR="$STAGE2"/llvm-ar \
 	HOSTLD="$STAGE2"/ld.lld \
 	CROSS_COMPILE=aarch64-linux-gnu- || exit ${?}
-
-clear
 
 echo "Training arm"
 make distclean defconfig \
