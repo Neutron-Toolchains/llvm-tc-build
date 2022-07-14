@@ -33,11 +33,3 @@ for bin in $(find install -mindepth 2 -maxdepth 3 -type f -exec file {} \; | gre
 	echo "$bin"
 	patchelf --set-rpath '$ORIGIN/../lib' "$bin"
 done
-
-echo "Modifying rpath and interpreter path..."
-for bin in $(find install -type f -exec file {} \; | grep 'ELF .* interpreter' | awk '{print $1}'); do
-	bin="${bin::-1}"
-	echo "$bin"
-	patchelf --add-rpath '$ORIGIN/../lib' "$bin"
-	patchelf --set-interpreter '$ORIGIN/../lib/ld-linux-x86-64.so.2' "$bin"
-done
