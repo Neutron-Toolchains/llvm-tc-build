@@ -26,7 +26,7 @@ build() {
 			CXX="g++" \
 			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
 			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
-			LDFLAGS="-O3" \
+			LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now" \
 			--target=x86_64-pc-linux-gnu \
 			--prefix=$INSTALL_DIR \
 			--disable-compressed-debug-sections \
@@ -54,7 +54,7 @@ build() {
 			CXX="g++" \
 			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
 			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
-			LDFLAGS="-O3" \
+			LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now" \
 			--target=aarch64-linux-gnu \
 			--prefix=$INSTALL_DIR \
 			--disable-compressed-debug-sections \
@@ -82,7 +82,7 @@ build() {
 			CXX="g++" \
 			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
 			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
-			LDFLAGS="-O3" \
+			LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now" \
 			--target=arm-linux-gnueabi \
 			--prefix=$INSTALL_DIR \
 			--disable-compressed-debug-sections \
