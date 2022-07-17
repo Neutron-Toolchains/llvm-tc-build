@@ -73,11 +73,11 @@ binutils_pull() {
 get_linux_5_tarball() {
 	if [ -e linux-$1.tar.xz ]; then
 		echo "Existing linux-$1 tarball found, skipping download"
-		tar xvf linux-$1.tar.xz
+		tar xf linux-$1.tar.xz
 	else
 		echo "Downloading linux-$1 tarball"
 		wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$1.tar.xz"
-		tar xvf linux-$1.tar.xz
+		tar xf linux-$1.tar.xz
 	fi
 }
 
@@ -366,7 +366,7 @@ make distclean defconfig \
 	HOSTAR="$STAGE2"/llvm-ar \
 	HOSTLD="$STAGE2"/ld.lld
 
-time make all -j$(nproc --all) \
+time make all -s -j$(nproc --all) \
 	LLVM=1 \
 	LLVM_IAS=1 \
 	CC="$STAGE2"/clang \
@@ -403,7 +403,7 @@ make distclean defconfig \
 	HOSTLD="$STAGE2"/ld.lld \
 	CROSS_COMPILE=aarch64-linux-gnu-
 
-time make all -j$(nproc --all) \
+time make all -s -j$(nproc --all) \
 	LLVM=1 \
 	LLVM_IAS=1 \
 	ARCH=arm64 \
