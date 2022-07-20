@@ -15,7 +15,7 @@ USE_SYSTEM_BINUTILS_64=1
 USE_SYSTEM_BINUTILS_32=1
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-	POLLY_OPT_FLAGS="-mllvm -polly -mllvm -polly-run-dce -mllvm -polly-run-inliner -mllvm -polly-ast-use-context -mllvm -polly-detect-keep-going -mllvm -polly-vectorizer=stripmine -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy=1 -mllvm -polly-reschedule=1 -mllvm -polly-postopts=1 -mllvm -polly-num-threads=0 -mllvm -polly-omp-backend=LLVM -mllvm -polly-scheduling=dynamic -mllvm -polly-scheduling-chunksize=1"
+	POLLY_OPT_FLAGS="-mllvm -polly"
 fi
 
 LLVM_DIR="$BUILDDIR/llvm-project"
