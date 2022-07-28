@@ -4,7 +4,7 @@
 #!/bin/bash
 set -e
 
-LINUX_VER=5.18.12
+LINUX_VER="5.18.14"
 BINUTILS_VER="2_38"
 BUILDDIR=$(pwd)
 CLEAN_BUILD=3
