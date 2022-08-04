@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# shellcheck disable=SC2086
 # Post Build script
 set -e
 
 PERSONAL=0
 
+# Notify build status to a Telegram chat.
 msg() {
 	if [[ $PERSONAL -eq 1 ]]; then
 		telegram-send "$1"

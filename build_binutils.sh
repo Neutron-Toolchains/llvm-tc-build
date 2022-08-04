@@ -1,14 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# shellcheck disable=SC2086
 # A Script to build GNU binutils
 set -e
 
+# Specify some variables.
 BUILDDIR=$(pwd)
 BINUTILS_DIR="$BUILDDIR/binutils-gdb"
 INSTALL_DIR="$BUILDDIR/install"
-BINTUILS_BUILD="$BUILDDIR/binutils-build"
+BINUTILS_BUILD="$BUILDDIR/binutils-build"
 PERSONAL=0
 
+# Notify build status to a Telegram chat.
 msg() {
+
 	if [[ $PERSONAL -eq 1 ]]; then
 		telegram-send "$1"
 	else
@@ -16,11 +20,16 @@ msg() {
 	fi
 }
 
+# The main build function that builds GNU binutils.
 build() {
-	rm -rf $BINTUILS_BUILD
-	mkdir -p $BINTUILS_BUILD
-	cd $BINTUILS_BUILD
-	if [[ $1 == "X86" ]]; then
+
+	if [ -d $BINUTILS_BUILD ]; then
+		rm -rf $BINUTILS_BUILD
+	fi
+	mkdir -p $BINUTILS_BUILD
+	cd $BINUTILS_BUILD
+	case $1 in
+	"X86")
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
@@ -48,7 +57,8 @@ build() {
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
-	elif [[ $1 == "ARM64" ]]; then
+		;;
+	"ARM64")
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
@@ -76,7 +86,8 @@ build() {
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
-	elif [[ $1 == "ARM" ]]; then
+		;;
+	"ARM")
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
@@ -104,10 +115,18 @@ build() {
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
-	fi
+		;;
+	*)
+		echo "You have specified a wrong architecture type or one that we do not support! Do specify the correct one or feel free to make a PR with the relevant changes to add support to the architecture that you are trying to build this toolchain for."
+		exit 1
+		;;
+	esac
+
 	make -j$(($(nproc --all) + 2))
 	make install -j$(($(nproc --all) + 2))
 }
+
+# This is where the build starts.
 
 msg "Starting Binutils Build"
 
