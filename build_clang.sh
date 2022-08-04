@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# shellcheck disable=SC2086
 # A custom Multi-Stage LLVM Toolchain builder.
 # PGO optimized clang for building Linux Kernels.
-#!/bin/bash
 set -e
 
+# Specify some variables.
 LINUX_VER="5.19"
 BINUTILS_VER="2_38"
 BUILDDIR=$(pwd)
@@ -42,7 +43,9 @@ if [[ $CLEAN_BUILD -eq 3 ]]; then
 	rm -rf $LLVM_BUILD
 fi
 
+# Where all relevant build-related repositories are cloned.
 llvm_clone() {
+
 	if ! git clone https://github.com/llvm/llvm-project.git; then
 		echo "llvm-project git clone: Failed" >&2
 		exit 1
@@ -50,6 +53,7 @@ llvm_clone() {
 }
 
 llvm_pull() {
+
 	if ! git pull https://github.com/llvm/llvm-project.git; then
 		echo "llvm-project git Pull: Failed" >&2
 		exit 1
@@ -57,6 +61,7 @@ llvm_pull() {
 }
 
 binutils_clone() {
+
 	if ! git clone https://sourceware.org/git/binutils-gdb.git -b binutils-$BINUTILS_VER-branch; then
 		echo "binutils git clone: Failed" >&2
 		exit 1
@@ -64,6 +69,7 @@ binutils_clone() {
 }
 
 binutils_pull() {
+
 	if ! git pull https://sourceware.org/git/binutils-gdb.git binutils-$BINUTILS_VER-branch; then
 		echo "binutils git Pull: Failed" >&2
 		exit 1
@@ -71,6 +77,7 @@ binutils_pull() {
 }
 
 get_linux_5_tarball() {
+
 	if [ -e linux-$1.tar.xz ]; then
 		echo "Existing linux-$1 tarball found, skipping download"
 		tar xf linux-$1.tar.xz
@@ -82,6 +89,7 @@ get_linux_5_tarball() {
 }
 
 build_temp_binutils() {
+
 	rm -rf $TEMP_BINTUILS_BUILD
 	mkdir -p $TEMP_BINTUILS_BUILD
 	if [ "$1" = "aarch64-linux-gnu" ]; then
