@@ -693,19 +693,27 @@ if [[ $BOLT_OPT -eq 1 ]]; then
 	rm -rf $BOLT_PROFILES
 	mkdir -p "$BOLT_PROFILES"
 	export PATH="$STAGE3:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
-	perf record -e cycles:u -j any,u -- sleep 1 &>/dev/null
-	if [[ $? == "0" ]]; then
-		echo "Performing BOLT with sampling!"
-		bolt_profile_gen "perf" || (
-			echo "Optimizing with BOLT failed!"
-			exit 1
-		)
-	else
+	if [[ $CI -eq 1 ]]; then
 		echo "Performing BOLT with instrumenting!"
 		bolt_profile_gen "instrumenting" || (
 			echo "Optimizing with BOLT failed!"
 			exit 1
 		)
+	else
+		perf record -e cycles:u -j any,u -- sleep 1 &>/dev/null
+		if [[ $? == "0" ]]; then
+			echo "Performing BOLT with sampling!"
+			bolt_profile_gen "perf" || (
+				echo "Optimizing with BOLT failed!"
+				exit 1
+			)
+		else
+			echo "Performing BOLT with instrumenting!"
+			bolt_profile_gen "instrumenting" || (
+				echo "Optimizing with BOLT failed!"
+				exit 1
+			)
+		fi
 	fi
 	rm -rf "$TEMP_BINTUILS_BUILD"
 	rm -rf "$TEMP_BINTUILS_INSTALL"
