@@ -42,6 +42,8 @@ build() {
 			--disable-gdb \
 			--disable-gdbserver \
 			--disable-docs \
+			--disable-libdecnumber \
+			--disable-readline \
 			--disable-sim \
 			--disable-werror \
 			--enable-lto \
@@ -70,6 +72,9 @@ build() {
 			--disable-gdb \
 			--disable-gdbserver \
 			--disable-docs \
+			--disable-libdecnumber \
+			--disable-readline \
+			--disable-sim \
 			--disable-multilib \
 			--disable-werror \
 			--disable-nls \
@@ -98,6 +103,9 @@ build() {
 			--disable-gdb \
 			--disable-gdbserver \
 			--disable-docs \
+			--disable-libdecnumber \
+			--disable-readline \
+			--disable-sim \
 			--disable-multilib \
 			--disable-werror \
 			--disable-nls \
