@@ -127,8 +127,8 @@ build_temp_binutils() {
 		--quiet \
 		--with-pkgversion="Neutron Binutils"
 
-	make -j$(nproc --all)
-	make install -j$(nproc --all)
+	make -s -j$(nproc --all)
+	make install -s -j$(nproc --all)
 }
 
 bolt_profile_gen() {
