@@ -53,7 +53,6 @@ build() {
 			--enable-gold \
 			--enable-threads \
 			--enable-targets=x86_64-pep \
-			--with-system-zlib \
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
@@ -82,7 +81,6 @@ build() {
 			--enable-plugins \
 			--enable-gold \
 			--enable-threads \
-			--with-system-zlib \
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
@@ -111,7 +109,6 @@ build() {
 			--enable-plugins \
 			--enable-gold \
 			--enable-threads \
-			--with-system-zlib \
 			--enable-ld=default \
 			--quiet \
 			--with-pkgversion="Neutron Binutils"
