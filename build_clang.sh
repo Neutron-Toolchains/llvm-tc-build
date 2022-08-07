@@ -102,8 +102,8 @@ build_temp_binutils() {
 	"$BINUTILS_DIR"/configure \
 		CC="gcc" \
 		CXX="g++" \
-		CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
-		CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -ffat-lto-objects" \
+		CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
+		CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
 		LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now" \
 		--target=$1 \
 		--prefix=$TEMP_BINTUILS_INSTALL \
@@ -111,6 +111,9 @@ build_temp_binutils() {
 		--disable-gdb \
 		--disable-gdbserver \
 		--disable-docs \
+		--disable-libdecnumber \
+		--disable-readline \
+		--disable-sim \
 		--disable-multilib \
 		--disable-werror \
 		--disable-nls \
@@ -122,7 +125,6 @@ build_temp_binutils() {
 		--enable-plugins \
 		--enable-gold \
 		--enable-threads \
-		--with-system-zlib \
 		--enable-ld=default \
 		--quiet \
 		--with-pkgversion="Neutron Binutils"
