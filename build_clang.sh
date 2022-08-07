@@ -129,6 +129,8 @@ build_temp_binutils() {
 
 	make -s -j$(nproc --all)
 	make install -s -j$(nproc --all)
+	echo "temp binutils build done, removing build dir"
+	rm -rf $TEMP_BINTUILS_BUILD
 }
 
 bolt_profile_gen() {
@@ -594,7 +596,6 @@ cd "$PROFILES"
 "$STAGE2"/llvm-profdata merge -output=clang.profdata *
 
 if [[ $BOLT_OPT -eq 0 ]]; then
-	rm -rf "$TEMP_BINTUILS_BUILD"
 	rm -rf "$TEMP_BINTUILS_INSTALL"
 fi
 
@@ -715,7 +716,6 @@ if [[ $BOLT_OPT -eq 1 ]]; then
 			)
 		fi
 	fi
-	rm -rf "$TEMP_BINTUILS_BUILD"
 	rm -rf "$TEMP_BINTUILS_INSTALL"
 fi
 
