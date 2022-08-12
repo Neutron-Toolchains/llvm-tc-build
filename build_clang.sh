@@ -344,7 +344,7 @@ cd "$OUT"
 
 LLVM_BIN_DIR=$(readlink -f $(which clang) | rev | cut -d'/' -f2- | rev)
 
-OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections"
+OPT_FLAGS="-O3 -march=native -mtune=native -ffunction-sections -fdata-sections"
 OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now -fuse-ld=$LLVM_BIN_DIR/ld.lld"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
