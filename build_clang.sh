@@ -5,7 +5,7 @@
 set -e
 
 # Specify some variables.
-LINUX_VER="5.19.3"
+LINUX_VER="5.19.4"
 BINUTILS_VER="2_39"
 BUILDDIR=$(pwd)
 CLEAN_BUILD=3
