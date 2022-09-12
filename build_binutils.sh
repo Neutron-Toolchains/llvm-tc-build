@@ -8,17 +8,6 @@ BUILDDIR=$(pwd)
 BINUTILS_DIR="$BUILDDIR/binutils-gdb"
 INSTALL_DIR="$BUILDDIR/install"
 BINUTILS_BUILD="$BUILDDIR/binutils-build"
-PERSONAL=0
-
-# Notify build status to a Telegram chat.
-msg() {
-
-	if [[ $PERSONAL -eq 1 ]]; then
-		telegram-send "$1"
-	else
-		echo "$1"
-	fi
-}
 
 # The main build function that builds GNU binutils.
 build() {
@@ -132,13 +121,19 @@ build() {
 }
 
 # This is where the build starts.
-
-msg "Starting Binutils Build"
-
-msg "Starting Binutils Build for x86-64"
-build "X86"
-msg "Starting Binutils Build for arm"
-build "ARM"
-msg "Starting Binutils Build for arm64"
-build "ARM64"
-msg "Binutils Build: END"
+echo "Starting Binutils Build"
+echo "Starting Binutils Build for x86-64"
+build "X86" || (
+	echo "x86-64 Build failed!"
+	exit 1
+)
+echo "Starting Binutils Build for arm"
+build "ARM" || (
+	echo "arm Build failed!"
+	exit 1
+)
+echo "Starting Binutils Build for arm64"
+build "ARM64" || (
+	echo "arm64 Build failed!"
+	exit 1
+)
