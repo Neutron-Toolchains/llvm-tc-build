@@ -116,8 +116,8 @@ build() {
 		;;
 	esac
 
-	make -j$(($(nproc --all) + 2))
-	make install -j$(($(nproc --all) + 2))
+	make -j$(($(nproc --all) + 2)) >/dev/null
+	make install -j$(($(nproc --all) + 2)) >/dev/null
 }
 
 # This is where the build starts.
