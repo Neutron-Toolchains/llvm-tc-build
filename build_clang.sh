@@ -129,8 +129,8 @@ build_temp_binutils() {
 		--quiet \
 		--with-pkgversion="Neutron Binutils"
 
-	make -s -j$(nproc --all)
-	make install -s -j$(nproc --all)
+	make -s -j$(nproc --all) >/dev/null
+	make install -s -j$(nproc --all) >/dev/null
 	echo "temp binutils build done, removing build dir"
 	rm -rf $TEMP_BINTUILS_BUILD
 }
@@ -404,7 +404,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	-DCMAKE_SHARED_LINKER_FLAGS="$OPT_FLAGS_LD" \
 	"$LLVM_PROJECT"
 
-ninja -j$(nproc --all) || (
+ninja -j$(nproc --all) >/dev/null || (
 	echo "Could not build project!"
 	exit 1
 )
@@ -488,7 +488,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
 	"$LLVM_PROJECT"
 
 echo "Installing to $OUT/install"
-ninja install -j$(nproc --all) || (
+ninja install -j$(nproc --all) >/dev/null || (
 	echo "Could not install project!"
 	exit 1
 )
