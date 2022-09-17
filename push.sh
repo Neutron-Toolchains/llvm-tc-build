@@ -7,7 +7,7 @@ set -e
 CURRENT_DIR=$(pwd)
 BINUTILS_DIR="$CURRENT_DIR/binutils-gdb"
 LLVM_DIR="$CURRENT_DIR/llvm-project"
-NEUTRON_DIR="$CURRENT_DIR/neutron-clang"
+NEUTRON_DIR="$CURRENT_DIR/clang-build-catalogue"
 INSTALL_DIR="$CURRENT_DIR/install"
 
 rel_tag="$(date "+%d%m%Y")"      # "{date}{month}{year}" format
