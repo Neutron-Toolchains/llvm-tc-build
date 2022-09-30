@@ -22,8 +22,8 @@ build() {
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
-			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
-			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
+			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
+			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
 			LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug" \
 			--target=x86_64-pc-linux-gnu \
 			--prefix=$INSTALL_DIR \
@@ -52,8 +52,8 @@ build() {
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
-			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
-			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
+			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
+			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
 			LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug" \
 			--target=aarch64-linux-gnu \
 			--prefix=$INSTALL_DIR \
@@ -83,8 +83,8 @@ build() {
 		"$BINUTILS_DIR"/configure \
 			CC="gcc" \
 			CXX="g++" \
-			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
-			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
+			CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
+			CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
 			LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug" \
 			--target=arm-linux-gnueabi \
 			--prefix=$INSTALL_DIR \
