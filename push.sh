@@ -16,16 +16,16 @@ rel_file="$CURRENT_DIR/neutron-clang-$rel_tag.tar.zst"
 
 neutron_clone() {
 
-	if ! git clone https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
-		exit 1
-	fi
+    if ! git clone https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
+        exit 1
+    fi
 }
 
 neutron_pull() {
 
-	if ! git pull https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
-		exit 1
-	fi
+    if ! git pull https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
+        exit 1
+    fi
 }
 
 # Binutils Info
@@ -49,16 +49,16 @@ cd $CURRENT_DIR
 builder_commit="$(git rev-parse HEAD)"
 
 if [ -d "$NEUTRON_DIR"/ ]; then
-	cd $NEUTRON_DIR/
-	if ! git status; then
-		cd $CURRENT_DIR
-		neutron_clone
-	else
-		neutron_pull
-		cd $CURRENT_DIR
-	fi
+    cd $NEUTRON_DIR/
+    if ! git status; then
+        cd $CURRENT_DIR
+        neutron_clone
+    else
+        neutron_pull
+        cd $CURRENT_DIR
+    fi
 else
-	neutron_clone
+    neutron_clone
 fi
 
 cd $INSTALL_DIR
@@ -94,15 +94,15 @@ Release: https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/ta
 git gc
 
 if gh release view "${rel_tag}"; then
-	echo "Uploading build archive to '${rel_tag}'..."
-	gh release upload --clobber "${rel_tag}" "${rel_file}" && {
-		echo "Version ${rel_tag} updated!"
-	}
+    echo "Uploading build archive to '${rel_tag}'..."
+    gh release upload --clobber "${rel_tag}" "${rel_file}" && {
+        echo "Version ${rel_tag} updated!"
+    }
 else
-	echo "Creating release with tag '${rel_tag}'..."
-	gh release create "${rel_tag}" "${rel_file}" -t "$rel_date" && {
-		echo "Version ${rel_tag} released!"
-	}
+    echo "Creating release with tag '${rel_tag}'..."
+    gh release create "${rel_tag}" "${rel_file}" -t "$rel_date" && {
+        echo "Version ${rel_tag} released!"
+    }
 fi
 
 git push -f
