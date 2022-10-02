@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086
 # A Script to build GNU binutils
 set -e
 
@@ -12,11 +11,11 @@ BINUTILS_BUILD="$BUILDDIR/binutils-build"
 # The main build function that builds GNU binutils.
 build() {
 
-    if [ -d $BINUTILS_BUILD ]; then
-        rm -rf $BINUTILS_BUILD
+    if [ -d "$BINUTILS_BUILD" ]; then
+        rm -rf "$BINUTILS_BUILD"
     fi
-    mkdir -p $BINUTILS_BUILD
-    cd $BINUTILS_BUILD
+    mkdir -p "$BINUTILS_BUILD"
+    cd "$BINUTILS_BUILD"
     case $1 in
         "X86")
             "$BINUTILS_DIR"/configure \
@@ -26,7 +25,7 @@ build() {
                 CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
                 LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug" \
                 --target=x86_64-pc-linux-gnu \
-                --prefix=$INSTALL_DIR \
+                --prefix="$INSTALL_DIR" \
                 --disable-compressed-debug-sections \
                 --disable-gdb \
                 --disable-gdbserver \
@@ -56,7 +55,7 @@ build() {
                 CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
                 LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug" \
                 --target=aarch64-linux-gnu \
-                --prefix=$INSTALL_DIR \
+                --prefix="$INSTALL_DIR" \
                 --disable-compressed-debug-sections \
                 --disable-gdb \
                 --disable-gdbserver \
@@ -87,7 +86,7 @@ build() {
                 CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize" \
                 LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug" \
                 --target=arm-linux-gnueabi \
-                --prefix=$INSTALL_DIR \
+                --prefix="$INSTALL_DIR" \
                 --disable-compressed-debug-sections \
                 --disable-gdb \
                 --disable-gdbserver \
