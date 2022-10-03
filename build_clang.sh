@@ -4,7 +4,7 @@
 set -e
 
 # Specify some variables.
-LINUX_VER="5.19.12"
+LINUX_VER="6.0"
 BINUTILS_VER="2_39"
 BUILDDIR=$(pwd)
 CLEAN_BUILD=3
@@ -83,7 +83,7 @@ get_linux_5_tarball() {
         tar xf linux-"$1".tar.xz
     else
         echo "Downloading linux-$1 tarball"
-        wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$1.tar.xz"
+        wget "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$1.tar.xz"
         tar xf linux-"$1".tar.xz
     fi
 }
