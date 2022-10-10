@@ -346,14 +346,14 @@ LLVM_BIN_DIR=$(readlink -f "$(which clang)" | rev | cut -d'/' -f2- | rev)
 OPT_FLAGS="-O3 -march=native -mtune=native -ffunction-sections -fdata-sections"
 OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now -fuse-ld=$LLVM_BIN_DIR/ld.lld"
 
+STAGE1_PROJS="clang;lld;compiler-rt"
+
+if [[ $BOLT_OPT -eq 1 ]]; then
+    STAGE1_PROJS="$STAGE1_PROJS;bolt"
+fi
+
 if [[ $POLLY_OPT -eq 1 ]]; then
-    if [[ $BOLT_OPT -eq 1 ]]; then
-        STAGE1_PROJS="clang;lld;compiler-rt;bolt;polly"
-    else
-        STAGE1_PROJS="clang;lld;compiler-rt;polly"
-    fi
-else
-    STAGE1_PROJS="clang;lld;compiler-rt"
+    STAGE1_PROJS="$STAGE1_PROJS;polly"
 fi
 
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
