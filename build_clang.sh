@@ -4,7 +4,7 @@
 set -e
 
 # Specify some variables.
-LINUX_VER="6.0"
+LINUX_VER=$(curl -sL "https://www.kernel.org" | grep -A 1 "latest_link" | tail -n +2 | sed 's|.*">||' | sed 's|</a>||')
 BINUTILS_VER="2_39"
 BUILDDIR=$(pwd)
 CLEAN_BUILD=3
@@ -76,7 +76,7 @@ binutils_pull() {
     fi
 }
 
-get_linux_5_tarball() {
+get_linux_tarball() {
 
     if [ -e linux-"$1".tar.xz ]; then
         echo "Existing linux-$1 tarball found, skipping download"
@@ -324,7 +324,7 @@ else
     binutils_clone
 fi
 
-get_linux_5_tarball $LINUX_VER
+get_linux_tarball "$LINUX_VER"
 
 LLVM_PROJECT="$LLVM_DIR/llvm"
 
