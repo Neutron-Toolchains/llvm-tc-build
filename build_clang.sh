@@ -181,18 +181,18 @@ bolt_profile_gen() {
         )
         cd "$OUT"
 
-        CLANG_SUFFIX=$(readlink "$STAGE3"/clang)
+        CLANG_SUFFIX=$(basename "$(readlink -f "${STAGE3}"/clang)")
 
-        "$STAGE1"/perf2bolt "$STAGE3/$CLANG_SUFFIX" \
-            -p "$BOLT_PROFILES/perf.data" \
-            -o "$BOLT_PROFILES/$CLANG_SUFFIX.fdata" || (
+        "$STAGE1"/perf2bolt "${STAGE3}/${CLANG_SUFFIX}" \
+            -p "${BOLT_PROFILES}/perf.data" \
+            -o "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" || (
             echo "Failed to convert perf data"
             exit 1
         )
 
-        "$STAGE1"/llvm-bolt "$STAGE3/$CLANG_SUFFIX" \
-            -o "$STAGE3/$CLANG_SUFFIX.bolt" \
-            --data "$BOLT_PROFILES/$CLANG_SUFFIX.fdata" \
+        "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}" \
+            -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
+            --data "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
             -relocs \
             -split-functions \
             -split-all-cold \
@@ -209,18 +209,18 @@ bolt_profile_gen() {
             exit 1
         )
 
-        mv "$STAGE3/$CLANG_SUFFIX" "$STAGE3/$CLANG_SUFFIX.org"
-        mv "$STAGE3/$CLANG_SUFFIX.bolt" "$STAGE3/$CLANG_SUFFIX"
+        mv "${STAGE3}/${CLANG_SUFFIX}" "${STAGE3}/${CLANG_SUFFIX}.org"
+        mv "${STAGE3}/${CLANG_SUFFIX}.bolt" "${STAGE3}/${CLANG_SUFFIX}"
     else
         "$STAGE1"/llvm-bolt \
             --instrument \
             --instrumentation-file-append-pid \
-            --instrumentation-file="$BOLT_PROFILES/$CLANG_SUFFIX.fdata" \
-            "$STAGE3/$CLANG_SUFFIX" \
-            -o "$STAGE3/$CLANG_SUFFIX.inst"
+            --instrumentation-file="${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
+            "${STAGE3}/${CLANG_SUFFIX}" \
+            -o "${STAGE3}/${CLANG_SUFFIX}.inst"
 
-        mv "$STAGE3/$CLANG_SUFFIX" "$STAGE3/$CLANG_SUFFIX.org"
-        mv "$STAGE3/$CLANG_SUFFIX.inst" "$STAGE3/$CLANG_SUFFIX"
+        mv "${STAGE3}/${CLANG_SUFFIX}" "${STAGE3}/${CLANG_SUFFIX}.org"
+        mv "${STAGE3}/${CLANG_SUFFIX}.inst" "${STAGE3}/${CLANG_SUFFIX}"
 
         echo "Training arm64"
         cd "$KERNEL_DIR"
@@ -269,9 +269,9 @@ bolt_profile_gen() {
         cd "$BOLT_PROFILES"
         "$STAGE1"/merge-fdata ./*.fdata >combined.fdata
 
-        "$STAGE1"/llvm-bolt "$STAGE3/$CLANG_SUFFIX.org" \
+        "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
             --data combined.fdata \
-            -o "$STAGE3/$CLANG_SUFFIX" \
+            -o "${STAGE3}/${CLANG_SUFFIX}" \
             -relocs \
             -split-functions \
             -split-all-cold \
