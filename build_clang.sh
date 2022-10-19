@@ -136,6 +136,8 @@ build_temp_binutils() {
 
 bolt_profile_gen() {
 
+    CLANG_SUFFIX=$(basename "$(readlink -f "${STAGE3}"/clang)")
+
     if [ "$1" = "perf" ]; then
         echo "Training arm64"
         cd "$KERNEL_DIR"
@@ -180,8 +182,6 @@ bolt_profile_gen() {
             exit 1
         )
         cd "$OUT"
-
-        CLANG_SUFFIX=$(basename "$(readlink -f "${STAGE3}"/clang)")
 
         "$STAGE1"/perf2bolt "${STAGE3}/${CLANG_SUFFIX}" \
             -p "${BOLT_PROFILES}/perf.data" \
