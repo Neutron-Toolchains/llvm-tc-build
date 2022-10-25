@@ -10,6 +10,7 @@ BUILDDIR=$(pwd)
 CLEAN_BUILD=3
 POLLY_OPT=1
 BOLT_OPT=1
+LLVM_OPT=1
 
 # DO NOT CHANGE
 USE_SYSTEM_BINUTILS_64=1
@@ -17,6 +18,10 @@ USE_SYSTEM_BINUTILS_32=1
 
 if [[ $POLLY_OPT -eq 1 ]]; then
     POLLY_OPT_FLAGS="-fopenmp -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-ast-use-context -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel=true -mllvm -polly-omp-backend=LLVM -mllvm -polly-scheduling=dynamic -mllvm -polly-scheduling-chunksize=1 -mllvm -polly-tiling=true -mllvm -polly-enable-delicm=true -mllvm -polly-optimizer=isl -mllvm -polly-reschedule -mllvm -polly-postopts -mllvm -polly-num-threads=0"
+fi
+
+if [[ $LLVM_OPT -eq 1 ]]; then
+    LLVM_OPT_FLAGS="-mllvm -extra-vectorizer-passes -mllvm -enable-loopinterchange -mllvm -enable-loop-distribute -mllvm -enable-unroll-and-jam -mllvm -allow-unroll-and-jam -mllvm -enable-loop-flatten -mllvm -interleave-small-loop-scalar-reduction -mllvm -unroll-runtime-multi-exit -mllvm -aggressive-ext-opt -mllvm -enable-chr"
 fi
 
 LLVM_DIR="$BUILDDIR/llvm-project"
@@ -432,7 +437,7 @@ MODDED_PATH="$STAGE1/bin:$STAGE1:$PATH"
 export PATH="$MODDED_PATH"
 
 OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
-OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now -Wl,--lto-O3 -fuse-ld=$STAGE1/ld.lld"
+OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3 -fuse-ld=$STAGE1/ld.lld"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
     OPT_FLAGS="$OPT_FLAGS $POLLY_OPT_FLAGS"
@@ -609,10 +614,14 @@ echo "Stage 3 Build: Start"
 
 export PATH="$MODDED_PATH"
 
-OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=full -O3"
+OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=full -falign-functions=32"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
     OPT_FLAGS="$OPT_FLAGS $POLLY_OPT_FLAGS"
+fi
+
+if [[ $LLVM_OPT -eq 1 ]]; then
+    OPT_FLAGS="$OPT_FLAGS $LLVM_OPT_FLAGS"
 fi
 
 if [[ $BOLT_OPT -eq 1 ]]; then
