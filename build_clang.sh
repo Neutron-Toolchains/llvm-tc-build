@@ -525,6 +525,14 @@ export PATH="$STAGE2:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
 # Train PGO
 cd "$KERNEL_DIR"
 
+# Patches
+if [ -d "$BUILDDIR/patches/linux/$LINUX_VER" ]; then
+    for pfile in "$BUILDDIR/patches/linux/$LINUX_VER"/*; do
+        echo "Applying: $pfile"
+        patch -Np1 <"$pfile" || echo "Skipping: $pfile"
+    done
+fi
+
 echo "Training x86"
 make distclean defconfig \
     LLVM=1 \
