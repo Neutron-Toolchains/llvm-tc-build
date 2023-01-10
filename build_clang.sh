@@ -240,7 +240,7 @@ bolt_profile_gen() {
             --jump-tables=move \
             --dyno-stats \
             --reorder-functions=hfsort+ \
-            --thread-count=$(nproc --all) \
+            --thread-count="$(nproc --all)" \
             --eliminate-unreachable \
             --reorder-blocks=ext-tsp \
             --tail-duplication=cache || (
@@ -321,7 +321,7 @@ bolt_profile_gen() {
             --jump-tables=move \
             --dyno-stats \
             --reorder-functions=hfsort+ \
-            --thread-count=$(nproc --all) \
+            --thread-count="$(nproc --all)" \
             --eliminate-unreachable \
             --reorder-blocks=ext-tsp \
             --tail-duplication=cache || (
