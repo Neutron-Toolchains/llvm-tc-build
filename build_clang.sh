@@ -17,7 +17,28 @@ USE_SYSTEM_BINUTILS_64=1
 USE_SYSTEM_BINUTILS_32=1
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-    POLLY_OPT_FLAGS="-fopenmp -mllvm -polly -mllvm -polly-vectorizer=stripmine -mllvm -polly-ast-use-context -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-run-inliner -mllvm -polly-run-dce -mllvm -polly-parallel -mllvm -polly-omp-backend=LLVM -mllvm -polly-scheduling=dynamic -mllvm -polly-scheduling-chunksize=1 -mllvm -polly-tiling -mllvm -polly-enable-delicm -mllvm -polly-optimizer=isl -mllvm -polly-reschedule -mllvm -polly-postopts -mllvm -polly-num-threads=0 -mllvm -polly-dependences-computeout=0 -mllvm -polly-dependences-analysis-type=value-based"
+    POLLY_OPT_FLAGS=(
+        "-fopenmp"
+        "-mllvm -polly"
+        "-mllvm -polly-vectorizer=stripmine"
+        "-mllvm -polly-ast-use-context"
+        "-mllvm -polly-invariant-load-hoisting"
+        "-mllvm -polly-loopfusion-greedy"
+        "-mllvm -polly-run-inliner"
+        "-mllvm -polly-run-dce"
+        "-mllvm -polly-parallel"
+        "-mllvm -polly-omp-backend=LLVM"
+        "-mllvm -polly-scheduling=dynamic"
+        "-mllvm -polly-scheduling-chunksize=1"
+        "-mllvm -polly-tiling"
+        "-mllvm -polly-enable-delicm"
+        "-mllvm -polly-optimizer=isl"
+        "-mllvm -polly-reschedule"
+        "-mllvm -polly-postopts"
+        "-mllvm -polly-num-threads=0"
+        "-mllvm -polly-dependences-computeout=0"
+        "-mllvm -polly-dependences-analysis-type=value-based"
+    )
 fi
 
 if [[ $LLVM_OPT -eq 1 ]]; then
@@ -442,7 +463,7 @@ OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flt
 OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3 -fuse-ld=$STAGE1/ld.lld"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-    OPT_FLAGS="$OPT_FLAGS $POLLY_OPT_FLAGS"
+    OPT_FLAGS="$OPT_FLAGS ${POLLY_OPT_FLAGS[*]}"
 fi
 
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
@@ -624,7 +645,7 @@ export PATH="$MODDED_PATH"
 OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=full -falign-functions=32"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-    OPT_FLAGS="$OPT_FLAGS $POLLY_OPT_FLAGS"
+    OPT_FLAGS="$OPT_FLAGS ${POLLY_OPT_FLAGS[*]}"
 fi
 
 if [[ $LLVM_OPT -eq 1 ]]; then
