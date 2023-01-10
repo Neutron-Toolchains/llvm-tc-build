@@ -202,6 +202,7 @@ bolt_profile_gen() {
             --split-functions \
             --split-all-cold \
             --icf=1 \
+            --plt=hot \
             --split-eh \
             --use-gnu-stack \
             --jump-tables=move \
@@ -282,6 +283,7 @@ bolt_profile_gen() {
             --split-functions \
             --split-all-cold \
             --icf=1 \
+            --plt=hot \
             --split-eh \
             --use-gnu-stack \
             --jump-tables=move \
@@ -630,7 +632,7 @@ if [[ $LLVM_OPT -eq 1 ]]; then
 fi
 
 if [[ $BOLT_OPT -eq 1 ]]; then
-    OPT_FLAGS_LD_EXE="$OPT_FLAGS_LD -Wl,--emit-relocs"
+    OPT_FLAGS_LD_EXE="$OPT_FLAGS_LD -Wl,-znow -Wl,--emit-relocs"
 else
     OPT_FLAGS_LD_EXE="$OPT_FLAGS_LD"
 fi
