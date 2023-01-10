@@ -198,17 +198,17 @@ bolt_profile_gen() {
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}" \
             -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
             --data "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
-            -relocs \
-            -split-functions \
-            -split-all-cold \
-            -icf=1 \
-            -split-eh \
-            -use-gnu-stack \
-            -jump-tables=move \
-            -dyno-stats \
-            -reorder-functions=hfsort+ \
-            -reorder-blocks=ext-tsp \
-            -tail-duplication=cache || (
+            --relocs \
+            --split-functions \
+            --split-all-cold \
+            --icf=1 \
+            --split-eh \
+            --use-gnu-stack \
+            --jump-tables=move \
+            --dyno-stats \
+            --reorder-functions=hfsort+ \
+            --reorder-blocks=ext-tsp \
+            --tail-duplication=cache || (
             echo "Could not optimize clang with BOLT"
             exit 1
         )
@@ -276,17 +276,17 @@ bolt_profile_gen() {
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
             --data combined.fdata \
             -o "${STAGE3}/${CLANG_SUFFIX}" \
-            -relocs \
-            -split-functions \
-            -split-all-cold \
-            -icf=1 \
-            -split-eh \
-            -use-gnu-stack \
-            -jump-tables=move \
-            -dyno-stats \
-            -reorder-functions=hfsort+ \
-            -reorder-blocks=ext-tsp \
-            -tail-duplication=cache || (
+            --relocs \
+            --split-functions \
+            --split-all-cold \
+            --icf=1 \
+            --split-eh \
+            --use-gnu-stack \
+            --jump-tables=move \
+            --dyno-stats \
+            --reorder-functions=hfsort+ \
+            --reorder-blocks=ext-tsp \
+            --tail-duplication=cache || (
             echo "Could not optimize clang with BOLT"
             exit 1
         )
