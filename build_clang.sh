@@ -206,7 +206,7 @@ bolt_profile_gen() {
             -use-gnu-stack \
             -jump-tables=move \
             -dyno-stats \
-            -reorder-functions=hfsort \
+            -reorder-functions=hfsort+ \
             -reorder-blocks=ext-tsp \
             -tail-duplication=cache || (
             echo "Could not optimize clang with BOLT"
@@ -284,7 +284,7 @@ bolt_profile_gen() {
             -use-gnu-stack \
             -jump-tables=move \
             -dyno-stats \
-            -reorder-functions=hfsort \
+            -reorder-functions=hfsort+ \
             -reorder-blocks=ext-tsp \
             -tail-duplication=cache || (
             echo "Could not optimize clang with BOLT"
