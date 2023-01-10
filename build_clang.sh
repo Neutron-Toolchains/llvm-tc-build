@@ -202,7 +202,6 @@ bolt_profile_gen() {
             -split-functions \
             -split-all-cold \
             -icf=1 \
-            -lite=1 \
             -split-eh \
             -use-gnu-stack \
             -jump-tables=move \
@@ -281,7 +280,6 @@ bolt_profile_gen() {
             -split-functions \
             -split-all-cold \
             -icf=1 \
-            -lite=1 \
             -split-eh \
             -use-gnu-stack \
             -jump-tables=move \
