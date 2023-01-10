@@ -42,7 +42,18 @@ if [[ $POLLY_OPT -eq 1 ]]; then
 fi
 
 if [[ $LLVM_OPT -eq 1 ]]; then
-    LLVM_OPT_FLAGS="-mllvm -extra-vectorizer-passes -mllvm -enable-loopinterchange -mllvm -enable-loop-distribute -mllvm -enable-unroll-and-jam -mllvm -allow-unroll-and-jam -mllvm -enable-loop-flatten -mllvm -interleave-small-loop-scalar-reduction -mllvm -unroll-runtime-multi-exit -mllvm -aggressive-ext-opt -mllvm -enable-chr"
+    LLVM_OPT_FLAGS=(
+        "-mllvm -extra-vectorizer-passes"
+        "-mllvm -enable-loopinterchange"
+        "-mllvm -enable-loop-distribute"
+        "-mllvm -enable-unroll-and-jam"
+        "-mllvm -allow-unroll-and-jam"
+        "-mllvm -enable-loop-flatten"
+        "-mllvm -interleave-small-loop-scalar-reduction"
+        "-mllvm -unroll-runtime-multi-exit"
+        "-mllvm -aggressive-ext-opt"
+        "-mllvm -enable-chr"
+    )
 fi
 
 LLVM_DIR="$BUILDDIR/llvm-project"
@@ -649,7 +660,7 @@ if [[ $POLLY_OPT -eq 1 ]]; then
 fi
 
 if [[ $LLVM_OPT -eq 1 ]]; then
-    OPT_FLAGS="$OPT_FLAGS $LLVM_OPT_FLAGS"
+    OPT_FLAGS="$OPT_FLAGS ${LLVM_OPT_FLAGS[*]}"
 fi
 
 if [[ $BOLT_OPT -eq 1 ]]; then
