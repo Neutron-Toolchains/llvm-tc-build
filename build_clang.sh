@@ -238,7 +238,7 @@ bolt_profile_gen() {
             --peepholes=all \
             --split-eh \
             --use-gnu-stack \
-            --jump-tables=move \
+            --jump-tables=aggressive \
             --dyno-stats \
             --reorder-functions=hfsort+ \
             --thread-count="$(nproc --all)" \
@@ -320,7 +320,7 @@ bolt_profile_gen() {
             --peepholes=all \
             --split-eh \
             --use-gnu-stack \
-            --jump-tables=move \
+            --jump-tables=aggressive \
             --dyno-stats \
             --reorder-functions=hfsort+ \
             --thread-count="$(nproc --all)" \
