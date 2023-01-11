@@ -230,7 +230,6 @@ bolt_profile_gen() {
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}" \
             -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
             --data "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
-            --relocs \
             --split-functions \
             --split-all-cold \
             --icf=1 \
@@ -311,7 +310,6 @@ bolt_profile_gen() {
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
             --data combined.fdata \
             -o "${STAGE3}/${CLANG_SUFFIX}" \
-            --relocs \
             --split-functions \
             --split-all-cold \
             --icf=1 \
