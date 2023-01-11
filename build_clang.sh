@@ -315,7 +315,7 @@ bolt_profile_gen() {
 
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
             --data combined.fdata \
-            -o "${STAGE3}/${CLANG_SUFFIX}" \
+            -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
             --dyno-stats \
             --eliminate-unreachable \
             --frame-opt=hot \
@@ -338,6 +338,8 @@ bolt_profile_gen() {
             echo "Could not optimize clang with BOLT"
             exit 1
         )
+        rm -rf "${STAGE3}/${CLANG_SUFFIX:?}"
+        mv "${STAGE3}/${CLANG_SUFFIX}.bolt" "${STAGE3}/${CLANG_SUFFIX}"
     fi
 }
 
