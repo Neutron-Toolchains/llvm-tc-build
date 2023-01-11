@@ -581,6 +581,10 @@ if [ -d "$BUILDDIR/patches/linux/$LINUX_VER" ]; then
     done
 fi
 
+# Force profiling using O3
+sed -i 's|-Os|-O3|g' Makefile
+sed -i 's|-O2|-O3|g' Makefile
+
 echo "Training x86"
 time make distclean defconfig all -sj"$(nproc --all)" \
     LLVM=1 \
