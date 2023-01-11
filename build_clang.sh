@@ -240,6 +240,8 @@ bolt_profile_gen() {
             --use-gnu-stack \
             --jump-tables=aggressive \
             --dyno-stats \
+            --inline-all \
+            --inline-ap \
             --reorder-functions=hfsort+ \
             --thread-count="$(nproc --all)" \
             --eliminate-unreachable \
@@ -324,6 +326,8 @@ bolt_profile_gen() {
             --use-gnu-stack \
             --jump-tables=aggressive \
             --dyno-stats \
+            --inline-all \
+            --inline-ap \
             --reorder-functions=hfsort+ \
             --thread-count="$(nproc --all)" \
             --eliminate-unreachable \
