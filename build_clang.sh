@@ -243,6 +243,7 @@ bolt_profile_gen() {
             --reorder-functions=hfsort+ \
             --thread-count="$(nproc --all)" \
             --eliminate-unreachable \
+            --indirect-call-promotion=all \
             --reorder-blocks=ext-tsp \
             --tail-duplication=cache || (
             echo "Could not optimize clang with BOLT"
@@ -325,6 +326,7 @@ bolt_profile_gen() {
             --reorder-functions=hfsort+ \
             --thread-count="$(nproc --all)" \
             --eliminate-unreachable \
+            --indirect-call-promotion=all \
             --reorder-blocks=ext-tsp \
             --tail-duplication=cache || (
             echo "Could not optimize clang with BOLT"
