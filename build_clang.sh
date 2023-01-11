@@ -234,6 +234,7 @@ bolt_profile_gen() {
             --split-all-cold \
             --icf=1 \
             --plt=hot \
+            --frame-opt=hot \
             --split-eh \
             --use-gnu-stack \
             --jump-tables=move \
@@ -314,6 +315,7 @@ bolt_profile_gen() {
             --split-all-cold \
             --icf=1 \
             --plt=hot \
+            --frame-opt=hot \
             --split-eh \
             --use-gnu-stack \
             --jump-tables=move \
