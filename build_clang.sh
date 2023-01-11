@@ -178,7 +178,7 @@ bolt_profile_gen() {
     if [ "$1" = "perf" ]; then
         echo "Training arm64"
         cd "$KERNEL_DIR"
-        make distclean defconfig \
+        perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
             LLVM=1 \
             LLVM_IAS=1 \
             ARCH=arm64 \
@@ -190,26 +190,7 @@ bolt_profile_gen() {
             STRIP="$STAGE3"/llvm-strip \
             OBJCOPY="$STAGE3"/llvm-objcopy \
             OBJDUMP="$STAGE3"/llvm-objdump \
-            OBJSIZE="$STAGE3"/llvm-size \
-            HOSTCC="$STAGE3"/clang \
-            HOSTCXX="$STAGE3"/clang++ \
-            HOSTAR="$STAGE3"/llvm-ar \
-            HOSTLD="$STAGE3"/ld.lld \
-            CROSS_COMPILE=aarch64-linux-gnu-
-
-        perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make all -s -j"$(nproc --all)" \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            ARCH=arm64 \
-            CC="$STAGE3"/clang \
-            LD="$STAGE3"/ld.lld \
-            AR="$STAGE3"/llvm-ar \
-            NM="$STAGE3"/llvm-nm \
-            LD="$STAGE3"/ld.lld \
-            STRIP="$STAGE3"/llvm-strip \
-            OBJCOPY="$STAGE3"/llvm-objcopy \
-            OBJDUMP="$STAGE3"/llvm-objdump \
-            OBJSIZE="$STAGE3"/llvm-size \
+            READELF="$STAGE3"/llvm-readelf \
             HOSTCC="$STAGE3"/clang \
             HOSTCXX="$STAGE3"/clang++ \
             HOSTAR="$STAGE3"/llvm-ar \
@@ -268,7 +249,7 @@ bolt_profile_gen() {
 
         echo "Training arm64"
         cd "$KERNEL_DIR"
-        make distclean defconfig \
+        make distclean defconfig all -sj"$(nproc --all)" \
             LLVM=1 \
             LLVM_IAS=1 \
             ARCH=arm64 \
@@ -280,26 +261,7 @@ bolt_profile_gen() {
             STRIP="$STAGE3"/llvm-strip \
             OBJCOPY="$STAGE3"/llvm-objcopy \
             OBJDUMP="$STAGE3"/llvm-objdump \
-            OBJSIZE="$STAGE3"/llvm-size \
-            HOSTCC="$STAGE3"/clang \
-            HOSTCXX="$STAGE3"/clang++ \
-            HOSTAR="$STAGE3"/llvm-ar \
-            HOSTLD="$STAGE3"/ld.lld \
-            CROSS_COMPILE=aarch64-linux-gnu-
-
-        make all -s -j"$(nproc --all)" \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            ARCH=arm64 \
-            CC="$STAGE3"/clang \
-            LD="$STAGE3"/ld.lld \
-            AR="$STAGE3"/llvm-ar \
-            NM="$STAGE3"/llvm-nm \
-            LD="$STAGE3"/ld.lld \
-            STRIP="$STAGE3"/llvm-strip \
-            OBJCOPY="$STAGE3"/llvm-objcopy \
-            OBJDUMP="$STAGE3"/llvm-objdump \
-            OBJSIZE="$STAGE3"/llvm-size \
+            READELF="$STAGE3"/llvm-readelf \
             HOSTCC="$STAGE3"/clang \
             HOSTCXX="$STAGE3"/clang++ \
             HOSTAR="$STAGE3"/llvm-ar \
@@ -577,7 +539,7 @@ if [ -d "$BUILDDIR/patches/linux/$LINUX_VER" ]; then
 fi
 
 echo "Training x86"
-make distclean defconfig \
+time make distclean defconfig all -sj"$(nproc --all)" \
     LLVM=1 \
     LLVM_IAS=1 \
     CC="$STAGE2"/clang \
@@ -588,31 +550,14 @@ make distclean defconfig \
     STRIP="$STAGE2"/llvm-strip \
     OBJCOPY="$STAGE2"/llvm-objcopy \
     OBJDUMP="$STAGE2"/llvm-objdump \
-    OBJSIZE="$STAGE2"/llvm-size \
-    HOSTCC="$STAGE2"/clang \
-    HOSTCXX="$STAGE2"/clang++ \
-    HOSTAR="$STAGE2"/llvm-ar \
-    HOSTLD="$STAGE2"/ld.lld
-
-time make all -s -j"$(nproc --all)" \
-    LLVM=1 \
-    LLVM_IAS=1 \
-    CC="$STAGE2"/clang \
-    LD="$STAGE2"/ld.lld \
-    AR="$STAGE2"/llvm-ar \
-    NM="$STAGE2"/llvm-nm \
-    LD="$STAGE2"/ld.lld \
-    STRIP="$STAGE2"/llvm-strip \
-    OBJCOPY="$STAGE2"/llvm-objcopy \
-    OBJDUMP="$STAGE2"/llvm-objdump \
-    OBJSIZE="$STAGE2"/llvm-size \
+    READELF="$STAGE2"/llvm-readelf \
     HOSTCC="$STAGE2"/clang \
     HOSTCXX="$STAGE2"/clang++ \
     HOSTAR="$STAGE2"/llvm-ar \
     HOSTLD="$STAGE2"/ld.lld || exit ${?}
 
 echo "Training arm64"
-make distclean defconfig \
+time make distclean defconfig all -sj"$(nproc --all)" \
     LLVM=1 \
     LLVM_IAS=1 \
     ARCH=arm64 \
@@ -624,26 +569,7 @@ make distclean defconfig \
     STRIP="$STAGE2"/llvm-strip \
     OBJCOPY="$STAGE2"/llvm-objcopy \
     OBJDUMP="$STAGE2"/llvm-objdump \
-    OBJSIZE="$STAGE2"/llvm-size \
-    HOSTCC="$STAGE2"/clang \
-    HOSTCXX="$STAGE2"/clang++ \
-    HOSTAR="$STAGE2"/llvm-ar \
-    HOSTLD="$STAGE2"/ld.lld \
-    CROSS_COMPILE=aarch64-linux-gnu-
-
-time make all -s -j"$(nproc --all)" \
-    LLVM=1 \
-    LLVM_IAS=1 \
-    ARCH=arm64 \
-    CC="$STAGE2"/clang \
-    LD="$STAGE2"/ld.lld \
-    AR="$STAGE2"/llvm-ar \
-    NM="$STAGE2"/llvm-nm \
-    LD="$STAGE2"/ld.lld \
-    STRIP="$STAGE2"/llvm-strip \
-    OBJCOPY="$STAGE2"/llvm-objcopy \
-    OBJDUMP="$STAGE2"/llvm-objdump \
-    OBJSIZE="$STAGE2"/llvm-size \
+    READELF="$STAGE2"/llvm-readelf \
     HOSTCC="$STAGE2"/clang \
     HOSTCXX="$STAGE2"/clang++ \
     HOSTAR="$STAGE2"/llvm-ar \
