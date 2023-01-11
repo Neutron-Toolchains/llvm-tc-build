@@ -230,25 +230,25 @@ bolt_profile_gen() {
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}" \
             -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
             --data "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
-            --split-functions \
-            --split-all-cold \
-            --icf=1 \
-            --plt=hot \
-            --frame-opt=hot \
-            --peepholes=all \
-            --split-eh \
-            --use-gnu-stack \
-            --jump-tables=aggressive \
             --dyno-stats \
+            --eliminate-unreachable \
+            --frame-opt=hot \
+            --icf=1 \
+            --indirect-call-promotion=all \
             --inline-all \
             --inline-ap \
-            --reorder-functions=hfsort+ \
-            --thread-count="$(nproc --all)" \
-            --eliminate-unreachable \
-            --indirect-call-promotion=all \
-            --reorder-functions-use-hot-size \
+            --jump-tables=aggressive \
+            --peepholes=all \
+            --plt=hot \
             --reorder-blocks=ext-tsp \
-            --tail-duplication=cache || (
+            --reorder-functions-use-hot-size \
+            --reorder-functions=hfsort+ \
+            --split-all-cold \
+            --split-eh \
+            --split-functions \
+            --tail-duplication=cache \
+            --thread-count="$(nproc --all)" \
+            --use-gnu-stack || (
             echo "Could not optimize clang with BOLT"
             exit 1
         )
@@ -316,25 +316,25 @@ bolt_profile_gen() {
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
             --data combined.fdata \
             -o "${STAGE3}/${CLANG_SUFFIX}" \
-            --split-functions \
-            --split-all-cold \
-            --icf=1 \
-            --plt=hot \
-            --frame-opt=hot \
-            --peepholes=all \
-            --split-eh \
-            --use-gnu-stack \
-            --jump-tables=aggressive \
             --dyno-stats \
+            --eliminate-unreachable \
+            --frame-opt=hot \
+            --icf=1 \
+            --indirect-call-promotion=all \
             --inline-all \
             --inline-ap \
-            --reorder-functions=hfsort+ \
-            --thread-count="$(nproc --all)" \
-            --eliminate-unreachable \
-            --indirect-call-promotion=all \
-            --reorder-functions-use-hot-size \
+            --jump-tables=aggressive \
+            --peepholes=all \
+            --plt=hot \
             --reorder-blocks=ext-tsp \
-            --tail-duplication=cache || (
+            --reorder-functions-use-hot-size \
+            --reorder-functions=hfsort+ \
+            --split-all-cold \
+            --split-eh \
+            --split-functions \
+            --tail-duplication=cache \
+            --thread-count="$(nproc --all)" \
+            --use-gnu-stack || (
             echo "Could not optimize clang with BOLT"
             exit 1
         )
