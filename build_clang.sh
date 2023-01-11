@@ -286,7 +286,7 @@ bolt_profile_gen() {
         cd "$OUT"
 
         cd "$BOLT_PROFILES"
-        "$STAGE1"/merge-fdata ./*.fdata >combined.fdata
+        "$STAGE1"/merge-fdata -q ./*.fdata >combined.fdata
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
             --data "${BOLT_PROFILES}/combined.fdata" \
             -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
@@ -316,7 +316,7 @@ bolt_profile_gen() {
         mv "${STAGE3}/${CLANG_SUFFIX}.bolt" "${STAGE3}/${CLANG_SUFFIX}"
 
         cd "$BOLT_PROFILES_LLD"
-        "$STAGE1"/merge-fdata ./*.fdata >combined.fdata
+        "$STAGE1"/merge-fdata -q ./*.fdata >combined.fdata
         "$STAGE1"/llvm-bolt "${STAGE3}/lld.org" \
             --data "${BOLT_PROFILES_LLD}/combined.fdata" \
             -o "${STAGE3}/lld.bolt" \
