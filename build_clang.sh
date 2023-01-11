@@ -247,6 +247,19 @@ bolt_profile_gen() {
         mv "${STAGE3}/${CLANG_SUFFIX}" "${STAGE3}/${CLANG_SUFFIX}.org"
         mv "${STAGE3}/${CLANG_SUFFIX}.inst" "${STAGE3}/${CLANG_SUFFIX}"
 
+        "$STAGE1"/llvm-bolt \
+            --instrument \
+            --instrumentation-file-append-pid \
+            --instrumentation-file="${BOLT_PROFILES_LLD}/lld.fdata" \
+            "${STAGE3}/lld" \
+            -o "${STAGE3}/lld.inst"
+
+        mv "${STAGE3}/lld" "${STAGE3}/lld.org"
+        mv "${STAGE3}/lld.inst" "${STAGE3}/lld"
+
+        # As a speedup, lld invokes _Exit, which stops it from writing the BOLT profiles.
+        export LLD_IN_TEST=1
+
         echo "Training arm64"
         cd "$KERNEL_DIR"
         make distclean defconfig all -sj"$(nproc --all)" \
@@ -274,9 +287,8 @@ bolt_profile_gen() {
 
         cd "$BOLT_PROFILES"
         "$STAGE1"/merge-fdata ./*.fdata >combined.fdata
-
         "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
-            --data combined.fdata \
+            --data "${BOLT_PROFILES}/combined.fdata" \
             -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
             --dyno-stats \
             --eliminate-unreachable \
@@ -302,6 +314,37 @@ bolt_profile_gen() {
         )
         rm -rf "${STAGE3}/${CLANG_SUFFIX:?}"
         mv "${STAGE3}/${CLANG_SUFFIX}.bolt" "${STAGE3}/${CLANG_SUFFIX}"
+
+        cd "$BOLT_PROFILES_LLD"
+        "$STAGE1"/merge-fdata ./*.fdata >combined.fdata
+        "$STAGE1"/llvm-bolt "${STAGE3}/lld.org" \
+            --data "${BOLT_PROFILES_LLD}/combined.fdata" \
+            -o "${STAGE3}/lld.bolt" \
+            --dyno-stats \
+            --eliminate-unreachable \
+            --frame-opt=hot \
+            --icf=1 \
+            --indirect-call-promotion=all \
+            --inline-all \
+            --inline-ap \
+            --jump-tables=aggressive \
+            --peepholes=all \
+            --plt=hot \
+            --reorder-blocks=ext-tsp \
+            --reorder-functions-use-hot-size \
+            --reorder-functions=hfsort+ \
+            --split-all-cold \
+            --split-eh \
+            --split-functions \
+            --tail-duplication=cache \
+            --thread-count="$(nproc --all)" \
+            --use-gnu-stack || (
+            echo "Could not optimize clang with BOLT"
+            exit 1
+        )
+        rm -rf "${STAGE3}/lld"
+        mv "${STAGE3}/lld.bolt" "${STAGE3}/lld"
+        unset LLD_IN_TEST
     fi
 }
 
@@ -680,6 +723,9 @@ if [[ $BOLT_OPT -eq 1 ]]; then
     BOLT_PROFILES="$OUT/bolt-prof"
     rm -rf "$BOLT_PROFILES"
     mkdir -p "$BOLT_PROFILES"
+    BOLT_PROFILES_LLD="$OUT/bolt-prof-lld"
+    rm -rf "$BOLT_PROFILES_LLD"
+    mkdir -p "$BOLT_PROFILES_LLD"
     export PATH="$STAGE3:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
     if [[ $CI -eq 1 ]]; then
         echo "Performing BOLT with instrumenting!"
