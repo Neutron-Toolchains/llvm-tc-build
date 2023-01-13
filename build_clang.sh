@@ -186,7 +186,6 @@ bolt_profile_gen() {
             LD="$STAGE3"/ld.lld \
             AR="$STAGE3"/llvm-ar \
             NM="$STAGE3"/llvm-nm \
-            LD="$STAGE3"/ld.lld \
             STRIP="$STAGE3"/llvm-strip \
             OBJCOPY="$STAGE3"/llvm-objcopy \
             OBJDUMP="$STAGE3"/llvm-objdump \
@@ -292,7 +291,6 @@ bolt_profile_gen() {
             LD="$STAGE3"/ld.lld \
             AR="$STAGE3"/llvm-ar \
             NM="$STAGE3"/llvm-nm \
-            LD="$STAGE3"/ld.lld \
             STRIP="$STAGE3"/llvm-strip \
             OBJCOPY="$STAGE3"/llvm-objcopy \
             OBJDUMP="$STAGE3"/llvm-objdump \
@@ -316,7 +314,6 @@ bolt_profile_gen() {
             LD="$STAGE3"/ld.lld \
             AR="$STAGE3"/llvm-ar \
             NM="$STAGE3"/llvm-nm \
-            LD="$STAGE3"/ld.lld \
             STRIP="$STAGE3"/llvm-strip \
             OBJCOPY="$STAGE3"/llvm-objcopy \
             OBJDUMP="$STAGE3"/llvm-objdump \
@@ -641,7 +638,6 @@ time make distclean defconfig all -sj"$(nproc --all)" \
     LD="$STAGE2"/ld.lld \
     AR="$STAGE2"/llvm-ar \
     NM="$STAGE2"/llvm-nm \
-    LD="$STAGE2"/ld.lld \
     STRIP="$STAGE2"/llvm-strip \
     OBJCOPY="$STAGE2"/llvm-objcopy \
     OBJDUMP="$STAGE2"/llvm-objdump \
@@ -660,7 +656,6 @@ time make distclean defconfig all -sj"$(nproc --all)" \
     LD="$STAGE2"/ld.lld \
     AR="$STAGE2"/llvm-ar \
     NM="$STAGE2"/llvm-nm \
-    LD="$STAGE2"/ld.lld \
     STRIP="$STAGE2"/llvm-strip \
     OBJCOPY="$STAGE2"/llvm-objcopy \
     OBJDUMP="$STAGE2"/llvm-objdump \
