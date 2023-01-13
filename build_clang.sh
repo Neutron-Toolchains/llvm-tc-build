@@ -585,6 +585,9 @@ fi
 sed -i 's|-Os|-O3|g' Makefile
 sed -i 's|-O2|-O3|g' Makefile
 
+# As a speedup, lld invokes _Exit, which stops it from writing the PGO profiles.
+export LLD_IN_TEST=1
+
 echo "Training x86"
 time make distclean defconfig all -sj"$(nproc --all)" \
     LLVM=1 \
@@ -622,6 +625,8 @@ time make distclean defconfig all -sj"$(nproc --all)" \
     HOSTAR="$STAGE2"/llvm-ar \
     HOSTLD="$STAGE2"/ld.lld \
     CROSS_COMPILE=aarch64-linux-gnu- || exit ${?}
+
+unset LLD_IN_TEST
 
 # Merge training
 cd "$PROFILES"
