@@ -201,6 +201,28 @@ bolt_profile_gen() {
         )
         cd "$OUT"
 
+        echo "Training x86"
+        cd "$KERNEL_DIR"
+        perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
+            LLVM=1 \
+            LLVM_IAS=1 \
+            CC="$STAGE3"/clang \
+            LD="$STAGE3"/ld.lld \
+            AR="$STAGE3"/llvm-ar \
+            NM="$STAGE3"/llvm-nm \
+            STRIP="$STAGE3"/llvm-strip \
+            OBJCOPY="$STAGE3"/llvm-objcopy \
+            OBJDUMP="$STAGE3"/llvm-objdump \
+            READELF="$STAGE3"/llvm-readelf \
+            HOSTCC="$STAGE3"/clang \
+            HOSTCXX="$STAGE3"/clang++ \
+            HOSTAR="$STAGE3"/llvm-ar \
+            HOSTLD="$STAGE3"/ld.lld || (
+            echo "Kernel Build failed!"
+            exit 1
+        )
+        cd "$OUT"
+
         "$STAGE1"/perf2bolt "${STAGE3}/${CLANG_SUFFIX}" \
             -p "${BOLT_PROFILES}/perf.data" \
             -o "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" || (
@@ -280,6 +302,29 @@ bolt_profile_gen() {
             HOSTAR="$STAGE3"/llvm-ar \
             HOSTLD="$STAGE3"/ld.lld \
             CROSS_COMPILE=aarch64-linux-gnu- || (
+            echo "Kernel Build failed!"
+            exit 1
+        )
+        cd "$OUT"
+
+        echo "Training x86"
+        cd "$KERNEL_DIR"
+        make distclean defconfig all -sj"$(nproc --all)" \
+            LLVM=1 \
+            LLVM_IAS=1 \
+            CC="$STAGE3"/clang \
+            LD="$STAGE3"/ld.lld \
+            AR="$STAGE3"/llvm-ar \
+            NM="$STAGE3"/llvm-nm \
+            LD="$STAGE3"/ld.lld \
+            STRIP="$STAGE3"/llvm-strip \
+            OBJCOPY="$STAGE3"/llvm-objcopy \
+            OBJDUMP="$STAGE3"/llvm-objdump \
+            READELF="$STAGE3"/llvm-readelf \
+            HOSTCC="$STAGE3"/clang \
+            HOSTCXX="$STAGE3"/clang++ \
+            HOSTAR="$STAGE3"/llvm-ar \
+            HOSTLD="$STAGE3"/ld.lld || (
             echo "Kernel Build failed!"
             exit 1
         )
