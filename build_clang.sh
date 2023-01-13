@@ -455,7 +455,7 @@ if [[ $BOLT_OPT -eq 1 ]]; then
 fi
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-    STAGE1_PROJS="$STAGE1_PROJS;polly"
+    STAGE1_PROJS="$STAGE1_PROJS;polly;openmp"
 fi
 
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
