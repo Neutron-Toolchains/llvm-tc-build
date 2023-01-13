@@ -526,7 +526,7 @@ else
 fi
 cd "$OUT"
 STOCK_PATH=$PATH
-MODDED_PATH="$STAGE1/bin:$STAGE1:$PATH"
+MODDED_PATH="$STAGE1:$PATH"
 export PATH="$MODDED_PATH"
 
 OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
