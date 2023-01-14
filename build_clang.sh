@@ -528,6 +528,7 @@ cd "$OUT"
 STOCK_PATH=$PATH
 MODDED_PATH="$STAGE1:$PATH"
 export PATH="$MODDED_PATH"
+export LD_LIBRARY_PATH="$STAGE1/../lib"
 
 OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
 OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3 -fuse-ld=$STAGE1/ld.lld"
@@ -611,6 +612,7 @@ else
 fi
 
 export PATH="$STAGE2:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
+export LD_LIBRARY_PATH="$STAGE2/../lib"
 
 # Train PGO
 cd "$KERNEL_DIR"
@@ -682,6 +684,7 @@ echo "Stage 2: PGO Training End"
 echo "Stage 3 Build: Start"
 
 export PATH="$MODDED_PATH"
+export LD_LIBRARY_PATH="$STAGE1/../lib"
 
 OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=full -falign-functions=32"
 
@@ -776,6 +779,7 @@ if [[ $BOLT_OPT -eq 1 ]]; then
     rm -rf "$BOLT_PROFILES_LLD"
     mkdir -p "$BOLT_PROFILES_LLD"
     export PATH="$STAGE3:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
+    export LD_LIBRARY_PATH="$STAGE3/../lib"
     if [[ $CI -eq 1 ]]; then
         echo "Performing BOLT with instrumenting!"
         bolt_profile_gen "instrumenting" || (
