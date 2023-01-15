@@ -805,14 +805,14 @@ if [[ $BOLT_OPT -eq 1 ]]; then
         )
     else
         if ! perf record -e cycles:u -j any,u -- sleep 1 &>/dev/null; then
-            echo "Performing BOLT with sampling!"
-            bolt_profile_gen "perf" || (
+            echo "Performing BOLT with instrumenting!"
+            bolt_profile_gen "instrumenting" || (
                 echo "Optimizing with BOLT failed!"
                 exit 1
             )
         else
-            echo "Performing BOLT with instrumenting!"
-            bolt_profile_gen "instrumenting" || (
+            echo "Performing BOLT with sampling!"
+            bolt_profile_gen "perf" || (
                 echo "Optimizing with BOLT failed!"
                 exit 1
             )
