@@ -349,7 +349,6 @@ bolt_profile_gen() {
             --split-all-cold \
             --split-eh \
             --split-functions \
-            --tail-duplication=cache \
             --thread-count="$(nproc --all)" \
             --use-gnu-stack || (
             echo "Could not optimize clang with BOLT"
@@ -379,10 +378,9 @@ bolt_profile_gen() {
             --split-all-cold \
             --split-eh \
             --split-functions \
-            --tail-duplication=cache \
             --thread-count="$(nproc --all)" \
             --use-gnu-stack || (
-            echo "Could not optimize clang with BOLT"
+            echo "Could not optimize lld with BOLT"
             exit 1
         )
         rm -rf "${STAGE3}/lld"
