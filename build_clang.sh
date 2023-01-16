@@ -5,7 +5,7 @@ set -e
 
 # Specify some variables.
 LINUX_VER=$(curl -sL "https://www.kernel.org" | grep -A 1 "latest_link" | tail -n +2 | sed 's|.*">||' | sed 's|</a>||')
-BINUTILS_VER="2_39"
+BINUTILS_VER="2_40"
 BUILDDIR=$(pwd)
 CLEAN_BUILD=3
 POLLY_OPT=1
