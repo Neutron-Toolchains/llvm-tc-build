@@ -448,7 +448,7 @@ if [[ $USE_MOLD -eq 1 ]]; then
     LINKER="mold"
     LINKER_DIR=$(readlink -f "$(which mold)" | rev | cut -d'/' -f2- | rev)
 else
-    LINKER="lld"
+    LINKER="ld.lld"
     LINKER_DIR="$LLVM_BIN_DIR"
 fi
 
@@ -541,7 +541,7 @@ if [[ $USE_MOLD -eq 1 ]]; then
     LINKER="mold"
     LINKER_DIR=$(readlink -f "$(which mold)" | rev | cut -d'/' -f2- | rev)
 else
-    LINKER="lld"
+    LINKER="ld.lld"
     LINKER_DIR="$STAGE1"
 fi
 
