@@ -11,6 +11,7 @@ CLEAN_BUILD=3
 POLLY_OPT=1
 BOLT_OPT=1
 LLVM_OPT=0
+USE_MOLD=0
 
 # DO NOT CHANGE
 USE_SYSTEM_BINUTILS_64=1
@@ -445,8 +446,16 @@ cd "$OUT"
 
 LLVM_BIN_DIR=$(readlink -f "$(which clang)" | rev | cut -d'/' -f2- | rev)
 
+if [[ $USE_MOLD -eq 1 ]]; then
+    LINKER="mold"
+    LINKER_DIR=$(readlink -f "$(which mold)" | rev | cut -d'/' -f2- | rev)
+else
+    LINKER="lld"
+    LINKER_DIR="$LLVM_BIN_DIR"
+fi
+
 OPT_FLAGS="-O3 -march=native -mtune=native -ffunction-sections -fdata-sections"
-OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now -fuse-ld=$LLVM_BIN_DIR/ld.lld"
+OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now -fuse-ld=$LINKER_DIR/$LINKER"
 
 STAGE1_PROJS="clang;lld;compiler-rt"
 
@@ -486,8 +495,8 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_AR="$LLVM_BIN_DIR"/llvm-ar \
     -DCMAKE_NM="$LLVM_BIN_DIR"/llvm-nm \
     -DCMAKE_STRIP="$LLVM_BIN_DIR"/llvm-strip \
-    -DLLVM_USE_LINKER="$LLVM_BIN_DIR"/ld.lld \
-    -DCMAKE_LINKER="$LLVM_BIN_DIR"/ld.lld \
+    -DLLVM_USE_LINKER="$LINKER_DIR/$LINKER" \
+    -DCMAKE_LINKER="$LINKER_DIR/$LINKER" \
     -DCMAKE_OBJCOPY="$LLVM_BIN_DIR"/llvm-objcopy \
     -DCMAKE_OBJDUMP="$LLVM_BIN_DIR"/llvm-objdump \
     -DCMAKE_RANLIB="$LLVM_BIN_DIR"/llvm-ranlib \
@@ -530,8 +539,16 @@ MODDED_PATH="$STAGE1:$PATH"
 export PATH="$MODDED_PATH"
 export LD_LIBRARY_PATH="$STAGE1/../lib"
 
+if [[ $USE_MOLD -eq 1 ]]; then
+    LINKER="mold"
+    LINKER_DIR=$(readlink -f "$(which mold)" | rev | cut -d'/' -f2- | rev)
+else
+    LINKER="lld"
+    LINKER_DIR="$STAGE1"
+fi
+
 OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
-OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3 -fuse-ld=$STAGE1/ld.lld"
+OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3 -fuse-ld=$LINKER_DIR/$LINKER"
 
 if [[ $POLLY_OPT -eq 1 ]]; then
     OPT_FLAGS="$OPT_FLAGS ${POLLY_OPT_FLAGS[*]}"
@@ -560,8 +577,8 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_AR="$STAGE1"/llvm-ar \
     -DCMAKE_NM="$STAGE1"/llvm-nm \
     -DCMAKE_STRIP="$STAGE1"/llvm-strip \
-    -DLLVM_USE_LINKER="$STAGE1"/ld.lld \
-    -DCMAKE_LINKER="$STAGE1"/ld.lld \
+    -DLLVM_USE_LINKER="$LINKER_DIR/$LINKER" \
+    -DCMAKE_LINKER="$LINKER_DIR/$LINKER" \
     -DCMAKE_OBJCOPY="$STAGE1"/llvm-objcopy \
     -DCMAKE_OBJDUMP="$STAGE1"/llvm-objdump \
     -DCMAKE_RANLIB="$STAGE1"/llvm-ranlib \
@@ -740,8 +757,8 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_AR="$STAGE1"/llvm-ar \
     -DCMAKE_NM="$STAGE1"/llvm-nm \
     -DCMAKE_STRIP="$STAGE1"/llvm-strip \
-    -DLLVM_USE_LINKER="$STAGE1"/ld.lld \
-    -DCMAKE_LINKER="$STAGE1"/ld.lld \
+    -DLLVM_USE_LINKER="$LINKER_DIR/$LINKER" \
+    -DCMAKE_LINKER="$LINKER_DIR/$LINKER" \
     -DCMAKE_OBJCOPY="$STAGE1"/llvm-objcopy \
     -DCMAKE_OBJDUMP="$STAGE1"/llvm-objdump \
     -DCMAKE_RANLIB="$STAGE1"/llvm-ranlib \
