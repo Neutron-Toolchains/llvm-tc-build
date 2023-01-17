@@ -455,19 +455,22 @@ fi
 OPT_FLAGS="-O3 -march=native -mtune=native -ffunction-sections -fdata-sections"
 OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now -fuse-ld=$LINKER_DIR/$LINKER"
 
-STAGE1_PROJS="clang;lld;compiler-rt"
+STAGE1_PROJS="clang;lld"
+STAGE1_RTS="compiler-rt"
 
 if [[ $BOLT_OPT -eq 1 ]]; then
     STAGE1_PROJS="$STAGE1_PROJS;bolt"
 fi
 
 if [[ $POLLY_OPT -eq 1 ]]; then
-    STAGE1_PROJS="$STAGE1_PROJS;polly;openmp"
+    STAGE1_PROJS="$STAGE1_PROJS;polly"
+    STAGE1_RTS="$STAGE1_RTS;openmp"
 fi
 
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DLLVM_TARGETS_TO_BUILD="X86" \
     -DLLVM_ENABLE_PROJECTS="$STAGE1_PROJS" \
+    -DLLVM_ENABLE_RUNTIMES="$STAGE1_RTS" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCLANG_ENABLE_ARCMT=OFF \
     -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
@@ -734,7 +737,8 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLVM_ENABLE_WARNINGS=OFF \
-    -DLLVM_ENABLE_PROJECTS='clang;lld;compiler-rt;polly;openmp' \
+    -DLLVM_ENABLE_PROJECTS='clang;lld;polly' \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;openmp" \
     -DLLVM_BINUTILS_INCDIR="$BUILDDIR/binutils-gdb/include" \
     -DLLVM_ENABLE_PLUGINS=ON \
     -DCLANG_ENABLE_ARCMT=OFF \
