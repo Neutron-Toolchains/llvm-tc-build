@@ -53,7 +53,6 @@ if [[ $LLVM_OPT -eq 1 ]]; then
         "-mllvm -interleave-small-loop-scalar-reduction"
         "-mllvm -unroll-runtime-multi-exit"
         "-mllvm -aggressive-ext-opt"
-        "-mllvm -enable-chr"
     )
 fi
 
@@ -555,6 +554,10 @@ if [[ $POLLY_OPT -eq 1 ]]; then
     OPT_FLAGS="$OPT_FLAGS ${POLLY_OPT_FLAGS[*]}"
 fi
 
+if [[ $LLVM_OPT -eq 1 ]]; then
+    OPT_FLAGS="$OPT_FLAGS ${LLVM_OPT_FLAGS[*]}"
+fi
+
 cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCLANG_VENDOR="Neutron" \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
@@ -711,7 +714,7 @@ if [[ $POLLY_OPT -eq 1 ]]; then
 fi
 
 if [[ $LLVM_OPT -eq 1 ]]; then
-    OPT_FLAGS="$OPT_FLAGS ${LLVM_OPT_FLAGS[*]}"
+    OPT_FLAGS="$OPT_FLAGS ${LLVM_OPT_FLAGS[*]} -mllvm -enable-chr"
 fi
 
 if [[ $BOLT_OPT -eq 1 ]]; then
