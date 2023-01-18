@@ -66,7 +66,7 @@ fi
 build_temp_binutils() {
 
     rm -rf "$TEMP_BINTUILS_BUILD" && mkdir -p "$TEMP_BINTUILS_BUILD"
-    if [ "$1" = "aarch64-linux-gnu" ]; then
+    if [[ $1 == "aarch64-linux-gnu" ]]; then
         USE_SYSTEM_BINUTILS_64=0
     else
         USE_SYSTEM_BINUTILS_32=0
@@ -108,7 +108,7 @@ if [[ $BOLT_OPT -eq 1 ]]; then
             "HOSTAR=${STAGE3}/llvm-ar"
             "HOSTLD=${STAGE3}/ld.lld")
 
-        if [ "$1" = "perf" ]; then
+        if [[ $1 == "perf" ]]; then
             echo "Training arm64"
             cd "$KERNEL_DIR"
             perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
@@ -218,7 +218,7 @@ fi
 
 echo "Starting LLVM Build"
 # Where all relevant build-related repositories are cloned.
-if [ -d "$LLVM_DIR"/ ]; then
+if [[ -d $LLVM_DIR ]]; then
     cd "$LLVM_DIR"/
     if ! git status; then
         echo "llvm-project dir found but not a git repo, recloning"
@@ -235,7 +235,7 @@ else
     llvm_clone
 fi
 
-if [ -d "$BINUTILS_DIR"/ ]; then
+if [[ -d $BINUTILS_DIR ]]; then
     cd "$BINUTILS_DIR"/
     if ! git status; then
         echo "GNU binutils dir found but not a git repo, recloning"
@@ -262,7 +262,7 @@ rm -rf "$KERNEL_DIR" && get_linux_tarball "$LINUX_VER"
 echo "Starting Stage 1 Build"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage1"
-if [ -d "$OUT" ]; then
+if [[ -d $OUT ]]; then
     if [[ $CLEAN_BUILD -eq 1 ]]; then
         rm -rf "$OUT"
         mkdir "$OUT"
@@ -356,7 +356,7 @@ echo "Stage 2: Build Start"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage2-prof-gen"
 
-if [ -d "$OUT" ]; then
+if [[ -d $OUT ]]; then
     if [[ $CLEAN_BUILD -eq 1 ]]; then
         rm -rf "$OUT"
         mkdir "$OUT"
@@ -476,7 +476,7 @@ export LD_LIBRARY_PATH="$STAGE2/../lib"
 cd "$KERNEL_DIR"
 
 # Patches
-if [ -d "$BUILDDIR/patches/linux/$LINUX_VER" ]; then
+if [[ -d "$BUILDDIR/patches/linux/$LINUX_VER" ]]; then
     for pfile in "$BUILDDIR/patches/linux/$LINUX_VER"/*; do
         echo "Applying: $pfile"
         patch -Np1 <"$pfile" || echo "Skipping: $pfile"
@@ -547,7 +547,7 @@ fi
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage3"
 
-if [ -d "$OUT" ]; then
+if [[ -d $OUT ]]; then
     if [[ $CLEAN_BUILD -eq 1 ]]; then
         rm -rf "$OUT"
         mkdir "$OUT"
