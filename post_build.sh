@@ -21,5 +21,5 @@ for bin in $(find install -mindepth 2 -maxdepth 3 -type f -exec file {} \; | gre
     # Remove last character from file output (':')
     bin="${bin::-1}"
     echo "$bin"
-    patchelf --set-rpath "\$ORIGIN/../lib" "$bin"
+    patchelf --set-rpath '$ORIGIN/../lib' "$bin"
 done

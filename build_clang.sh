@@ -1,134 +1,71 @@
 #!/usr/bin/env bash
+source utils.sh
 # A custom Multi-Stage LLVM Toolchain builder.
 # PGO optimized clang for building Linux Kernels.
 set -e
 
 # Specify some variables.
-LINUX_VER=$(curl -sL "https://www.kernel.org" | grep -A 1 "latest_link" | tail -n +2 | sed 's|.*">||' | sed 's|</a>||')
-BINUTILS_VER="2_40"
 BUILDDIR=$(pwd)
-CLEAN_BUILD=3
+
+# 1. Linux kernel
+LINUX_VER=$(curl -sL "https://www.kernel.org" | grep -A 1 "latest_link" | tail -n +2 | sed 's|.*">||' | sed 's|</a>||')
+KERNEL_DIR="$BUILDDIR/linux-$LINUX_VER"
+
+# 2. LLVM
+LLVM_DIR="$BUILDDIR/llvm-project"
+LLVM_BUILD="$BUILDDIR/llvm-build"
+LLVM_PROJECT="$LLVM_DIR/llvm"
+
+# 3. GNU Binutils
+BINUTILS_DIR="$BUILDDIR/binutils-gdb"
+TEMP_BINTUILS_BUILD="$BUILDDIR/temp-binutils-build"
+TEMP_BINTUILS_INSTALL="$BUILDDIR/temp-binutils"
+
+# Do clean build (Range: 0-3)
+# 0: Dirty build
+# 1: Clean build
+CLEAN_BUILD=1
+
+# Optimize final toolchain with Polly
+# 0: Disable
+# 1: Enable
 POLLY_OPT=1
+
+#Optimize final toolchain with BOLT
+# 0: Disable
+# 1: Enable
 BOLT_OPT=1
+
+# Optimize final toolchain with LLVM's transformation passes
+# 0: Disable
+# 1: Enable
 LLVM_OPT=0
+
+# Use mold linker
+# 0: Disable
+# 1: Enable
 USE_MOLD=0
 
 # DO NOT CHANGE
 USE_SYSTEM_BINUTILS_64=1
 USE_SYSTEM_BINUTILS_32=1
 
-if [[ $POLLY_OPT -eq 1 ]]; then
-    POLLY_OPT_FLAGS=(
-        "-fopenmp"
-        "-mllvm -polly"
-        "-mllvm -polly-vectorizer=stripmine"
-        "-mllvm -polly-ast-use-context"
-        "-mllvm -polly-invariant-load-hoisting"
-        "-mllvm -polly-loopfusion-greedy"
-        "-mllvm -polly-run-inliner"
-        "-mllvm -polly-run-dce"
-        "-mllvm -polly-parallel"
-        "-mllvm -polly-omp-backend=LLVM"
-        "-mllvm -polly-scheduling=dynamic"
-        "-mllvm -polly-scheduling-chunksize=1"
-        "-mllvm -polly-tiling"
-        "-mllvm -polly-enable-delicm"
-        "-mllvm -polly-optimizer=isl"
-        "-mllvm -polly-reschedule"
-        "-mllvm -polly-postopts"
-        "-mllvm -polly-num-threads=0"
-        "-mllvm -polly-dependences-computeout=0"
-        "-mllvm -polly-dependences-analysis-type=value-based"
-    )
-fi
+# Clear some variables if unused
+clear_if_unused "POLLY_OPT" "POLLY_OPT_FLAGS"
+clear_if_unused "LLVM_OPT" "LLVM_OPT_FLAGS"
+clear_if_unused "BOLT_OPT" "BOLT_OPT_FLAGS"
 
-if [[ $LLVM_OPT -eq 1 ]]; then
-    LLVM_OPT_FLAGS=(
-        "-mllvm -extra-vectorizer-passes"
-        "-mllvm -enable-loopinterchange"
-        "-mllvm -enable-loop-distribute"
-        "-mllvm -enable-unroll-and-jam"
-        "-mllvm -allow-unroll-and-jam"
-        "-mllvm -enable-loop-flatten"
-        "-mllvm -interleave-small-loop-scalar-reduction"
-        "-mllvm -unroll-runtime-multi-exit"
-        "-mllvm -aggressive-ext-opt"
-    )
-fi
-
-LLVM_DIR="$BUILDDIR/llvm-project"
-BINUTILS_DIR="$BUILDDIR/binutils-gdb"
-TEMP_BINTUILS_BUILD="$BUILDDIR/temp-binutils-build"
-TEMP_BINTUILS_INSTALL="$BUILDDIR/temp-binutils"
-KERNEL_DIR="$BUILDDIR/linux-$LINUX_VER"
-
-LLVM_BUILD="$BUILDDIR/llvm-build"
-
+# Send a notification if building on CI
 if [[ $CI -eq 1 ]]; then
     telegram-send --format html "\
 		<b>🔨 Neutron Clang Build Started</b>
 		Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>"
 fi
 
-echo "Starting LLVM Build"
-
-rm -rf "$KERNEL_DIR"
-rm -rf "$TEMP_BINTUILS_BUILD" && mkdir -p "$TEMP_BINTUILS_BUILD"
-rm -rf "$TEMP_BINTUILS_INSTALL" && mkdir -p "$TEMP_BINTUILS_INSTALL"
-
-if [[ $CLEAN_BUILD -eq 3 ]]; then
-    rm -rf "$LLVM_BUILD"
-fi
-
-# Where all relevant build-related repositories are cloned.
-llvm_clone() {
-
-    if ! git clone https://github.com/llvm/llvm-project.git; then
-        echo "llvm-project git clone: Failed" >&2
-        exit 1
-    fi
-}
-
-llvm_pull() {
-
-    if ! git pull https://github.com/llvm/llvm-project.git; then
-        echo "llvm-project git Pull: Failed" >&2
-        exit 1
-    fi
-}
-
-binutils_clone() {
-
-    if ! git clone https://sourceware.org/git/binutils-gdb.git -b binutils-$BINUTILS_VER-branch; then
-        echo "binutils git clone: Failed" >&2
-        exit 1
-    fi
-}
-
-binutils_pull() {
-
-    if ! git pull https://sourceware.org/git/binutils-gdb.git binutils-$BINUTILS_VER-branch; then
-        echo "binutils git Pull: Failed" >&2
-        exit 1
-    fi
-}
-
-get_linux_tarball() {
-
-    if [ -e linux-"$1".tar.xz ]; then
-        echo "Existing linux-$1 tarball found, skipping download"
-        tar xf linux-"$1".tar.xz
-    else
-        echo "Downloading linux-$1 tarball"
-        wget "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$1.tar.xz"
-        tar xf linux-"$1".tar.xz
-    fi
-}
-
+# Function build temporary binutils for kernel profiling
 build_temp_binutils() {
 
-    rm -rf "$TEMP_BINTUILS_BUILD"
-    mkdir -p "$TEMP_BINTUILS_BUILD"
+    rm -rf "$TEMP_BINTUILS_BUILD" && mkdir -p "$TEMP_BINTUILS_BUILD"
     if [ "$1" = "aarch64-linux-gnu" ]; then
         USE_SYSTEM_BINUTILS_64=0
     else
@@ -136,34 +73,13 @@ build_temp_binutils() {
     fi
     cd "$TEMP_BINTUILS_BUILD"
     "$BINUTILS_DIR"/configure \
-        CC="gcc" \
-        CXX="g++" \
-        CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
-        CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections" \
-        LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now" \
         --target="$1" \
         --prefix="$TEMP_BINTUILS_INSTALL" \
-        --disable-compressed-debug-sections \
-        --disable-gdb \
-        --disable-gdbserver \
-        --disable-docs \
-        --disable-libdecnumber \
-        --disable-readline \
-        --disable-sim \
-        --disable-multilib \
-        --disable-werror \
         --disable-nls \
         --with-gnu-as \
         --with-gnu-ld \
-        --enable-lto \
-        --enable-deterministic-archives \
-        --enable-new-dtags \
-        --enable-plugins \
-        --enable-gold \
-        --enable-threads \
-        --enable-ld=default \
-        --quiet \
-        --with-pkgversion="Neutron Binutils"
+        --disable-multilib \
+        "${COMMON_BINUTILS_FLAGS[@]}"
 
     make -s -j"$(nproc --all)" >/dev/null
     make install -s -j"$(nproc --all)" >/dev/null
@@ -171,223 +87,137 @@ build_temp_binutils() {
     rm -rf "$TEMP_BINTUILS_BUILD"
 }
 
-bolt_profile_gen() {
+# Function to BOLT clang and ld.lld
+if [[ $BOLT_OPT -eq 1 ]]; then
+    bolt_profile_gen() {
 
-    CLANG_SUFFIX=$(basename "$(readlink -f "${STAGE3}"/clang)")
+        CLANG_SUFFIX=$(basename "$(readlink -f "${STAGE3}"/clang)")
 
-    if [ "$1" = "perf" ]; then
-        echo "Training arm64"
-        cd "$KERNEL_DIR"
-        perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            ARCH=arm64 \
-            CC="$STAGE3"/clang \
-            LD="$STAGE3"/ld.lld \
-            AR="$STAGE3"/llvm-ar \
-            NM="$STAGE3"/llvm-nm \
-            STRIP="$STAGE3"/llvm-strip \
-            OBJCOPY="$STAGE3"/llvm-objcopy \
-            OBJDUMP="$STAGE3"/llvm-objdump \
-            READELF="$STAGE3"/llvm-readelf \
-            HOSTCC="$STAGE3"/clang \
-            HOSTCXX="$STAGE3"/clang++ \
-            HOSTAR="$STAGE3"/llvm-ar \
-            HOSTLD="$STAGE3"/ld.lld \
-            CROSS_COMPILE=aarch64-linux-gnu- || (
-            echo "Kernel Build failed!"
-            exit 1
-        )
-        cd "$OUT"
+        KMAKEFLAGS=("LLVM=1"
+            "LLVM_IAS=1"
+            "CC=${STAGE3}/clang"
+            "LD=${STAGE3}/ld.lld"
+            "AR=${STAGE3}/llvm-ar"
+            "NM=${STAGE3}/llvm-nm"
+            "STRIP=${STAGE3}/llvm-strip"
+            "OBJCOPY=${STAGE3}/llvm-objcopy"
+            "OBJDUMP=${STAGE3}/llvm-objdump"
+            "READELF=${STAGE3}/llvm-readelf"
+            "HOSTCC=${STAGE3}/clang"
+            "HOSTCXX=${STAGE3}/clang++"
+            "HOSTAR=${STAGE3}/llvm-ar"
+            "HOSTLD=${STAGE3}/ld.lld")
 
-        echo "Training x86"
-        cd "$KERNEL_DIR"
-        perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            CC="$STAGE3"/clang \
-            LD="$STAGE3"/ld.lld \
-            AR="$STAGE3"/llvm-ar \
-            NM="$STAGE3"/llvm-nm \
-            STRIP="$STAGE3"/llvm-strip \
-            OBJCOPY="$STAGE3"/llvm-objcopy \
-            OBJDUMP="$STAGE3"/llvm-objdump \
-            READELF="$STAGE3"/llvm-readelf \
-            HOSTCC="$STAGE3"/clang \
-            HOSTCXX="$STAGE3"/clang++ \
-            HOSTAR="$STAGE3"/llvm-ar \
-            HOSTLD="$STAGE3"/ld.lld || (
-            echo "Kernel Build failed!"
-            exit 1
-        )
-        cd "$OUT"
+        if [ "$1" = "perf" ]; then
+            echo "Training arm64"
+            cd "$KERNEL_DIR"
+            perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
+                "${KMAKEFLAGS[@]}" \
+                ARCH=arm64 \
+                CROSS_COMPILE=aarch64-linux-gnu- || (
+                echo "Kernel Build failed!"
+                exit 1
+            )
+            cd "$OUT"
 
-        "$STAGE1"/perf2bolt "${STAGE3}/${CLANG_SUFFIX}" \
-            -p "${BOLT_PROFILES}/perf.data" \
-            -o "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" || (
-            echo "Failed to convert perf data"
-            exit 1
-        )
+            echo "Training x86"
+            cd "$KERNEL_DIR"
+            perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
+                "${KMAKEFLAGS[@]}" || (
+                echo "Kernel Build failed!"
+                exit 1
+            )
+            cd "$OUT"
 
-        "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}" \
-            -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
-            --data "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
-            --dyno-stats \
-            --eliminate-unreachable \
-            --frame-opt=hot \
-            --icf=1 \
-            --indirect-call-promotion=all \
-            --inline-all \
-            --inline-ap \
-            --jump-tables=aggressive \
-            --peepholes=all \
-            --plt=hot \
-            --reorder-blocks=ext-tsp \
-            --reorder-functions-use-hot-size \
-            --reorder-functions=hfsort+ \
-            --split-all-cold \
-            --split-eh \
-            --split-functions \
-            --tail-duplication=cache \
-            --thread-count="$(nproc --all)" \
-            --use-gnu-stack || (
-            echo "Could not optimize clang with BOLT"
-            exit 1
-        )
+            "$STAGE1"/perf2bolt "${STAGE3}/${CLANG_SUFFIX}" \
+                -p "${BOLT_PROFILES}/perf.data" \
+                -o "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" || (
+                echo "Failed to convert perf data"
+                exit 1
+            )
 
-        mv "${STAGE3}/${CLANG_SUFFIX}" "${STAGE3}/${CLANG_SUFFIX}.org"
-        mv "${STAGE3}/${CLANG_SUFFIX}.bolt" "${STAGE3}/${CLANG_SUFFIX}"
-    else
-        "$STAGE1"/llvm-bolt \
-            --instrument \
-            --instrumentation-file-append-pid \
-            --instrumentation-file="${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
-            "${STAGE3}/${CLANG_SUFFIX}" \
-            -o "${STAGE3}/${CLANG_SUFFIX}.inst"
+            "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}" \
+                -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
+                --data "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
+                "${BOLT_OPT_FLAGS[@]}" || (
+                echo "Could not optimize clang with BOLT"
+                exit 1
+            )
 
-        mv "${STAGE3}/${CLANG_SUFFIX}" "${STAGE3}/${CLANG_SUFFIX}.org"
-        mv "${STAGE3}/${CLANG_SUFFIX}.inst" "${STAGE3}/${CLANG_SUFFIX}"
+            mv "${STAGE3}/${CLANG_SUFFIX}" "${STAGE3}/${CLANG_SUFFIX}.org"
+            mv "${STAGE3}/${CLANG_SUFFIX}.bolt" "${STAGE3}/${CLANG_SUFFIX}"
+        else
+            "$STAGE1"/llvm-bolt \
+                --instrument \
+                --instrumentation-file-append-pid \
+                --instrumentation-file="${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
+                "${STAGE3}/${CLANG_SUFFIX}" \
+                -o "${STAGE3}/${CLANG_SUFFIX}.inst"
 
-        "$STAGE1"/llvm-bolt \
-            --instrument \
-            --instrumentation-file-append-pid \
-            --instrumentation-file="${BOLT_PROFILES_LLD}/lld.fdata" \
-            "${STAGE3}/lld" \
-            -o "${STAGE3}/lld.inst"
+            mv "${STAGE3}/${CLANG_SUFFIX}" "${STAGE3}/${CLANG_SUFFIX}.org"
+            mv "${STAGE3}/${CLANG_SUFFIX}.inst" "${STAGE3}/${CLANG_SUFFIX}"
 
-        mv "${STAGE3}/lld" "${STAGE3}/lld.org"
-        mv "${STAGE3}/lld.inst" "${STAGE3}/lld"
+            "$STAGE1"/llvm-bolt \
+                --instrument \
+                --instrumentation-file-append-pid \
+                --instrumentation-file="${BOLT_PROFILES_LLD}/lld.fdata" \
+                "${STAGE3}/lld" \
+                -o "${STAGE3}/lld.inst"
 
-        # As a speedup, lld invokes _Exit, which stops it from writing the BOLT profiles.
-        export LLD_IN_TEST=1
+            mv "${STAGE3}/lld" "${STAGE3}/lld.org"
+            mv "${STAGE3}/lld.inst" "${STAGE3}/lld"
 
-        echo "Training arm64"
-        cd "$KERNEL_DIR"
-        make distclean defconfig all -sj"$(nproc --all)" \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            ARCH=arm64 \
-            CC="$STAGE3"/clang \
-            LD="$STAGE3"/ld.lld \
-            AR="$STAGE3"/llvm-ar \
-            NM="$STAGE3"/llvm-nm \
-            STRIP="$STAGE3"/llvm-strip \
-            OBJCOPY="$STAGE3"/llvm-objcopy \
-            OBJDUMP="$STAGE3"/llvm-objdump \
-            READELF="$STAGE3"/llvm-readelf \
-            HOSTCC="$STAGE3"/clang \
-            HOSTCXX="$STAGE3"/clang++ \
-            HOSTAR="$STAGE3"/llvm-ar \
-            HOSTLD="$STAGE3"/ld.lld \
-            CROSS_COMPILE=aarch64-linux-gnu- || (
-            echo "Kernel Build failed!"
-            exit 1
-        )
-        cd "$OUT"
+            # As a speedup, lld invokes _Exit, which stops it from writing the BOLT profiles.
+            export LLD_IN_TEST=1
 
-        echo "Training x86"
-        cd "$KERNEL_DIR"
-        make distclean defconfig all -sj"$(nproc --all)" \
-            LLVM=1 \
-            LLVM_IAS=1 \
-            CC="$STAGE3"/clang \
-            LD="$STAGE3"/ld.lld \
-            AR="$STAGE3"/llvm-ar \
-            NM="$STAGE3"/llvm-nm \
-            STRIP="$STAGE3"/llvm-strip \
-            OBJCOPY="$STAGE3"/llvm-objcopy \
-            OBJDUMP="$STAGE3"/llvm-objdump \
-            READELF="$STAGE3"/llvm-readelf \
-            HOSTCC="$STAGE3"/clang \
-            HOSTCXX="$STAGE3"/clang++ \
-            HOSTAR="$STAGE3"/llvm-ar \
-            HOSTLD="$STAGE3"/ld.lld || (
-            echo "Kernel Build failed!"
-            exit 1
-        )
-        cd "$OUT"
+            echo "Training arm64"
+            cd "$KERNEL_DIR"
+            make distclean defconfig all -sj"$(nproc --all)" \
+                "${KMAKEFLAGS[@]}" \
+                ARCH=arm64 \
+                CROSS_COMPILE=aarch64-linux-gnu- || (
+                echo "Kernel Build failed!"
+                exit 1
+            )
+            cd "$OUT"
 
-        cd "$BOLT_PROFILES"
-        "$STAGE1"/merge-fdata -q ./*.fdata >combined.fdata
-        "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
-            --data "${BOLT_PROFILES}/combined.fdata" \
-            -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
-            --dyno-stats \
-            --eliminate-unreachable \
-            --frame-opt=hot \
-            --icf=1 \
-            --indirect-call-promotion=all \
-            --inline-all \
-            --inline-ap \
-            --jump-tables=aggressive \
-            --peepholes=all \
-            --plt=hot \
-            --reorder-blocks=ext-tsp \
-            --reorder-functions-use-hot-size \
-            --reorder-functions=hfsort+ \
-            --split-all-cold \
-            --split-eh \
-            --split-functions \
-            --thread-count="$(nproc --all)" \
-            --use-gnu-stack || (
-            echo "Could not optimize clang with BOLT"
-            exit 1
-        )
-        rm -rf "${STAGE3}/${CLANG_SUFFIX:?}"
-        mv "${STAGE3}/${CLANG_SUFFIX}.bolt" "${STAGE3}/${CLANG_SUFFIX}"
+            echo "Training x86"
+            cd "$KERNEL_DIR"
+            make distclean defconfig all -sj"$(nproc --all)" \
+                "${KMAKEFLAGS[@]}" || (
+                echo "Kernel Build failed!"
+                exit 1
+            )
+            cd "$OUT"
 
-        cd "$BOLT_PROFILES_LLD"
-        "$STAGE1"/merge-fdata -q ./*.fdata >combined.fdata
-        "$STAGE1"/llvm-bolt "${STAGE3}/lld.org" \
-            --data "${BOLT_PROFILES_LLD}/combined.fdata" \
-            -o "${STAGE3}/lld.bolt" \
-            --dyno-stats \
-            --eliminate-unreachable \
-            --frame-opt=hot \
-            --icf=1 \
-            --indirect-call-promotion=all \
-            --inline-all \
-            --inline-ap \
-            --jump-tables=aggressive \
-            --peepholes=all \
-            --plt=hot \
-            --reorder-blocks=ext-tsp \
-            --reorder-functions-use-hot-size \
-            --reorder-functions=hfsort+ \
-            --split-all-cold \
-            --split-eh \
-            --split-functions \
-            --thread-count="$(nproc --all)" \
-            --use-gnu-stack || (
-            echo "Could not optimize lld with BOLT"
-            exit 1
-        )
-        rm -rf "${STAGE3}/lld"
-        mv "${STAGE3}/lld.bolt" "${STAGE3}/lld"
-        unset LLD_IN_TEST
-    fi
-}
+            cd "$BOLT_PROFILES"
+            "$STAGE1"/merge-fdata -q ./*.fdata >combined.fdata
+            rm -rf "${STAGE3}/${CLANG_SUFFIX:?}"
+            "$STAGE1"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
+                --data "${BOLT_PROFILES}/combined.fdata" \
+                -o "${STAGE3}/${CLANG_SUFFIX}" \
+                "${BOLT_OPT_FLAGS[@]}" || (
+                echo "Could not optimize clang with BOLT"
+                exit 1
+            )
 
+            cd "$BOLT_PROFILES_LLD"
+            "$STAGE1"/merge-fdata -q ./*.fdata >combined.fdata
+            rm -rf "${STAGE3}/lld"
+            "$STAGE1"/llvm-bolt "${STAGE3}/lld.org" \
+                --data "${BOLT_PROFILES_LLD}/combined.fdata" \
+                -o "${STAGE3}/lld" \
+                "${BOLT_OPT_FLAGS[@]}" || (
+                echo "Could not optimize lld with BOLT"
+                exit 1
+            )
+            unset LLD_IN_TEST
+        fi
+    }
+fi
+
+echo "Starting LLVM Build"
+# Where all relevant build-related repositories are cloned.
 if [ -d "$LLVM_DIR"/ ]; then
     cd "$LLVM_DIR"/
     if ! git status; then
@@ -404,8 +234,6 @@ else
     echo "cloning llvm project repo"
     llvm_clone
 fi
-
-mkdir -p "$BUILDDIR/llvm-build"
 
 if [ -d "$BINUTILS_DIR"/ ]; then
     cd "$BINUTILS_DIR"/
@@ -424,15 +252,18 @@ else
     binutils_clone
 fi
 
-get_linux_tarball "$LINUX_VER"
+if [[ $CLEAN_BUILD -eq 1 ]]; then
+    rm -rf "$LLVM_BUILD"
+fi
+mkdir -p "$LLVM_BUILD"
 
-LLVM_PROJECT="$LLVM_DIR/llvm"
+rm -rf "$KERNEL_DIR" && get_linux_tarball "$LINUX_VER"
 
 echo "Starting Stage 1 Build"
 cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage1"
 if [ -d "$OUT" ]; then
-    if [[ $CLEAN_BUILD -gt 0 ]]; then
+    if [[ $CLEAN_BUILD -eq 1 ]]; then
         rm -rf "$OUT"
         mkdir "$OUT"
     fi
@@ -526,7 +357,7 @@ cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage2-prof-gen"
 
 if [ -d "$OUT" ]; then
-    if [[ $CLEAN_BUILD -gt 1 ]]; then
+    if [[ $CLEAN_BUILD -eq 1 ]]; then
         rm -rf "$OUT"
         mkdir "$OUT"
     fi
@@ -617,6 +448,7 @@ rm -rf "${PROFILES:?}/"*
 echo "Stage 2: Build End"
 echo "Stage 2: PGO Train Start"
 
+rm -rf "$TEMP_BINTUILS_INSTALL" && mkdir -p "$TEMP_BINTUILS_INSTALL"
 command -v aarch64-linux-gnu-as &>/dev/null || build_temp_binutils aarch64-linux-gnu
 command -v arm-linux-gnueabi-as &>/dev/null || build_temp_binutils arm-linux-gnueabi
 
@@ -630,6 +462,11 @@ if [[ $USE_SYSTEM_BINUTILS_32 -eq 1 ]]; then
     BINTUILS_32_BIN_DIR=$(readlink -f "$(which arm-linux-gnueabi-as)" | rev | cut -d'/' -f2- | rev)
 else
     BINTUILS_32_BIN_DIR="$TEMP_BINTUILS_INSTALL/bin"
+fi
+
+if [[ $USE_SYSTEM_BINUTILS_64 -eq 1 ]] && [[ $USE_SYSTEM_BINUTILS_64 -eq 1 ]]; then
+    rm -rf "$TEMP_BINTUILS_INSTALL"
+    rm -rf "$TEMP_BINTUILS_BUILD"
 fi
 
 export PATH="$STAGE2:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
@@ -653,40 +490,26 @@ sed -i 's|-O2|-O3|g' Makefile
 # As a speedup, lld invokes _Exit, which stops it from writing the PGO profiles.
 export LLD_IN_TEST=1
 
+KMAKEFLAGS=("LLVM=1"
+    "LLVM_IAS=1"
+    "CC=${STAGE2}/clang"
+    "LD=${STAGE2}/ld.lld"
+    "AR=${STAGE2}/llvm-ar"
+    "NM=${STAGE2}/llvm-nm"
+    "STRIP=${STAGE2}/llvm-strip"
+    "OBJCOPY=${STAGE2}/llvm-objcopy"
+    "OBJDUMP=${STAGE2}/llvm-objdump"
+    "READELF=${STAGE2}/llvm-readelf"
+    "HOSTCC=${STAGE2}/clang"
+    "HOSTCXX=${STAGE2}/clang++"
+    "HOSTAR=${STAGE2}/llvm-ar"
+    "HOSTLD=${STAGE2}/ld.lld")
+
 echo "Training x86"
-time make distclean defconfig all -sj"$(nproc --all)" \
-    LLVM=1 \
-    LLVM_IAS=1 \
-    CC="$STAGE2"/clang \
-    LD="$STAGE2"/ld.lld \
-    AR="$STAGE2"/llvm-ar \
-    NM="$STAGE2"/llvm-nm \
-    STRIP="$STAGE2"/llvm-strip \
-    OBJCOPY="$STAGE2"/llvm-objcopy \
-    OBJDUMP="$STAGE2"/llvm-objdump \
-    READELF="$STAGE2"/llvm-readelf \
-    HOSTCC="$STAGE2"/clang \
-    HOSTCXX="$STAGE2"/clang++ \
-    HOSTAR="$STAGE2"/llvm-ar \
-    HOSTLD="$STAGE2"/ld.lld || exit ${?}
+time make distclean defconfig all -sj"$(nproc --all)" "${KMAKEFLAGS[@]}" || exit ${?}
 
 echo "Training arm64"
-time make distclean defconfig all -sj"$(nproc --all)" \
-    LLVM=1 \
-    LLVM_IAS=1 \
-    ARCH=arm64 \
-    CC="$STAGE2"/clang \
-    LD="$STAGE2"/ld.lld \
-    AR="$STAGE2"/llvm-ar \
-    NM="$STAGE2"/llvm-nm \
-    STRIP="$STAGE2"/llvm-strip \
-    OBJCOPY="$STAGE2"/llvm-objcopy \
-    OBJDUMP="$STAGE2"/llvm-objdump \
-    READELF="$STAGE2"/llvm-readelf \
-    HOSTCC="$STAGE2"/clang \
-    HOSTCXX="$STAGE2"/clang++ \
-    HOSTAR="$STAGE2"/llvm-ar \
-    HOSTLD="$STAGE2"/ld.lld \
+time make distclean defconfig all -sj"$(nproc --all)" ARCH=arm64 "${KMAKEFLAGS[@]}" \
     CROSS_COMPILE=aarch64-linux-gnu- || exit ${?}
 
 unset LLD_IN_TEST
@@ -698,7 +521,6 @@ cd "$PROFILES"
 if [[ $BOLT_OPT -eq 0 ]]; then
     rm -rf "$TEMP_BINTUILS_INSTALL"
 fi
-
 echo "Stage 2: PGO Training End"
 
 # Stage 3 (built with PGO profile data)
@@ -708,7 +530,6 @@ export PATH="$MODDED_PATH"
 export LD_LIBRARY_PATH="$STAGE1/../lib"
 
 OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=full -falign-functions=32"
-
 if [[ $POLLY_OPT -eq 1 ]]; then
     OPT_FLAGS="$OPT_FLAGS ${POLLY_OPT_FLAGS[*]}"
 fi
@@ -727,7 +548,7 @@ cd "$LLVM_BUILD"
 OUT="$LLVM_BUILD/stage3"
 
 if [ -d "$OUT" ]; then
-    if [[ $CLEAN_BUILD -gt 2 ]]; then
+    if [[ $CLEAN_BUILD -eq 1 ]]; then
         rm -rf "$OUT"
         mkdir "$OUT"
     fi
@@ -795,11 +616,9 @@ echo "Stage 3 Build: End"
 if [[ $BOLT_OPT -eq 1 ]]; then
     # Optimize final built clang with BOLT
     BOLT_PROFILES="$OUT/bolt-prof"
-    rm -rf "$BOLT_PROFILES"
-    mkdir -p "$BOLT_PROFILES"
     BOLT_PROFILES_LLD="$OUT/bolt-prof-lld"
-    rm -rf "$BOLT_PROFILES_LLD"
-    mkdir -p "$BOLT_PROFILES_LLD"
+    rm -rf "$BOLT_PROFILES" && rm -rf "$BOLT_PROFILES_LLD"
+    mkdir -p "$BOLT_PROFILES" && mkdir -p "$BOLT_PROFILES_LLD"
     export PATH="$STAGE3:$BINTUILS_64_BIN_DIR:$BINTUILS_32_BIN_DIR:$STOCK_PATH"
     export LD_LIBRARY_PATH="$STAGE3/../lib"
     if [[ $CI -eq 1 ]]; then
