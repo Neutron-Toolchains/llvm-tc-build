@@ -65,25 +65,20 @@ fi
 # Function build temporary binutils for kernel profiling
 build_temp_binutils() {
 
+    currdir=$(pwd)
     rm -rf "${TEMP_BINTUILS_BUILD}" && mkdir -p "${TEMP_BINTUILS_BUILD}"
     if [[ $1 == "aarch64-linux-gnu" ]]; then
         USE_SYSTEM_BINUTILS_64=0
+        target="ARM64"
     else
         USE_SYSTEM_BINUTILS_32=0
+        target="ARM"
     fi
-    cd "${TEMP_BINTUILS_BUILD}"
-    "${BINUTILS_DIR}"/configure \
-        --target="$1" \
-        --prefix="${TEMP_BINTUILS_INSTALL}" \
-        --disable-nls \
-        --with-gnu-as \
-        --with-gnu-ld \
-        --disable-multilib \
-        "${COMMON_BINUTILS_FLAGS[@]}"
-
-    make -s -j"$(nproc --all)" >/dev/null
-    make install -s -j"$(nproc --all)" >/dev/null
-    echo "temp binutils build done, removing build dir"
+    cd "${BUILDDIR}"
+    bash build_binutils.sh --targets="${target}" --install-dir="${TEMP_BINTUILS_INSTALL}" --build-dir="${TEMP_BINTUILS_BUILD}"
+    cd "${currdir}"
+    unset currdir
+    unset target
     rm -rf "${TEMP_BINTUILS_BUILD}"
 }
 
