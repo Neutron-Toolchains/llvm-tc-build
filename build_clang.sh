@@ -12,7 +12,6 @@ KERNEL_DIR="${BUILDDIR}/linux-${LINUX_VER}"
 
 # 2. LLVM
 LLVM_DIR="${BUILDDIR}/llvm-project"
-LLVM_BUILD="${BUILDDIR}/llvm-build"
 LLVM_PROJECT="${LLVM_DIR}/llvm"
 
 for arg in "$@"; do

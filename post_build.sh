@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source utils.sh
 # Post Build script
 set -e
 
@@ -12,7 +13,7 @@ echo "Stripping remaining products..."
 for f in $(find install -type f -exec file {} \; | grep 'not stripped' | awk '{print $1}'); do
     f="${f::-1}"
     echo "Stripping: ${f}"
-    strip "${f}"
+    "${LLVM_BUILD}"/stage1/bin/llvm-strip "${f}"
 done
 
 # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
