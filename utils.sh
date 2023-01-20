@@ -120,7 +120,7 @@ binutils_pull() {
 
 get_linux_tarball() {
 
-    if [ -e linux-"$1".tar.xz ]; then
+    if [[ -e linux-"$1".tar.xz ]]; then
         echo "Existing linux-$1 tarball found, skipping download"
         tar xf linux-"$1".tar.xz
     else

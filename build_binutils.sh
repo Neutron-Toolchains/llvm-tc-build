@@ -5,32 +5,32 @@ set -e
 
 # Specify some variables.
 BUILDDIR=$(pwd)
-BINUTILS_DIR="$BUILDDIR/binutils-gdb"
-INSTALL_DIR="$BUILDDIR/install"
-BINUTILS_BUILD="$BUILDDIR/binutils-build"
+BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
+INSTALL_DIR="${BUILDDIR}/install"
+BINUTILS_BUILD="${BUILDDIR}/binutils-build"
 
 # The main build function that builds GNU binutils.
 build() {
 
-    if [ -d "$BINUTILS_BUILD" ]; then
-        rm -rf "$BINUTILS_BUILD"
+    if [[ -d "${BINUTILS_BUILD}" ]]; then
+        rm -rf "${BINUTILS_BUILD}"
     fi
-    mkdir -p "$BINUTILS_BUILD"
-    cd "$BINUTILS_BUILD"
+    mkdir -p "${BINUTILS_BUILD}"
+    cd "${BINUTILS_BUILD}"
     case $1 in
         "X86")
-            "$BINUTILS_DIR"/configure \
+            "${BINUTILS_DIR}"/configure \
                 --target=x86_64-pc-linux-gnu \
                 --enable-targets=x86_64-pep \
                 --enable-relro \
                 --with-pic \
-                --prefix="$INSTALL_DIR" \
+                --prefix="${INSTALL_DIR}" \
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM64")
-            "$BINUTILS_DIR"/configure \
+            "${BINUTILS_DIR}"/configure \
                 --target=aarch64-linux-gnu \
-                --prefix="$INSTALL_DIR" \
+                --prefix="${INSTALL_DIR}" \
                 --disable-nls \
                 --with-gnu-as \
                 --with-gnu-ld \
@@ -38,9 +38,9 @@ build() {
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM")
-            "$BINUTILS_DIR"/configure \
+            "${BINUTILS_DIR}"/configure \
                 --target=arm-linux-gnueabi \
-                --prefix="$INSTALL_DIR" \
+                --prefix="${INSTALL_DIR}" \
                 --disable-nls \
                 --with-gnu-as \
                 --with-gnu-ld \
