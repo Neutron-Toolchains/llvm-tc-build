@@ -51,6 +51,29 @@ build_binutils() {
 
 for arg in "$@"; do
     case "${arg}" in
+        "--sync-source-only")
+            if [[ -d ${BINUTILS_DIR} ]]; then
+                cd "${BINUTILS_DIR}"
+                if ! git status &>/dev/null; then
+                    echo "GNU binutils dir found but not a git repo, recloning"
+                    cd "${BUILDDIR}" && rm -rf "${BINUTILS_DIR}" && binutils_clone
+                else
+                    echo "Existing binutils repo found, skipping clone"
+                    echo "Fetching new changes"
+                    binutils_pull
+                    cd "${BUILDDIR}"
+                fi
+            else
+                echo "cloning GNU binutils repo"
+                binutils_clone
+            fi
+            exit 0
+            ;;
+    esac
+done
+
+for arg in "$@"; do
+    case "${arg}" in
         "--install-dir"*)
             INSTALL_DIR="${arg#*--install-dir}"
             INSTALL_DIR=${INSTALL_DIR:1}

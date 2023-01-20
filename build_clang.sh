@@ -5,7 +5,6 @@ source utils.sh
 set -e
 
 # Specify some variables.
-BUILDDIR=$(pwd)
 
 # 1. Linux kernel
 LINUX_VER=$(curl -sL "https://www.kernel.org" | grep -A 1 "latest_link" | tail -n +2 | sed 's|.*">||' | sed 's|</a>||')
@@ -15,11 +14,6 @@ KERNEL_DIR="${BUILDDIR}/linux-${LINUX_VER}"
 LLVM_DIR="${BUILDDIR}/llvm-project"
 LLVM_BUILD="${BUILDDIR}/llvm-build"
 LLVM_PROJECT="${LLVM_DIR}/llvm"
-
-# 3. GNU Binutils
-BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
-TEMP_BINTUILS_BUILD="${BUILDDIR}/temp-binutils-build"
-TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
 
 for arg in "$@"; do
     case "${arg}" in
@@ -241,22 +235,7 @@ else
     llvm_clone
 fi
 
-if [[ -d ${BINUTILS_DIR} ]]; then
-    cd "${BINUTILS_DIR}"/
-    if ! git status; then
-        echo "GNU binutils dir found but not a git repo, recloning"
-        cd "${BUILDDIR}"
-        binutils_clone
-    else
-        echo "Existing binutils repo found, skipping clone"
-        echo "Fetching new changes"
-        binutils_pull
-        cd "${BUILDDIR}"
-    fi
-else
-    echo "cloning GNU binutils repo"
-    binutils_clone
-fi
+bash build_binutils.sh --sync-source-only
 
 if [[ ${CLEAN_BUILD} -eq 1 ]]; then
     rm -rf "${LLVM_BUILD}"
