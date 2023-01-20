@@ -11,6 +11,7 @@ build_binutils() {
 
     case $1 in
         "X86")
+            echo "Starting Binutils Build for x86-64"
             rm -rf "$2" && mkdir -p "$2" && cd "$2"
             "${BINUTILS_DIR}"/configure \
                 --enable-relro \
@@ -21,6 +22,7 @@ build_binutils() {
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM64")
+            echo "Starting Binutils Build for arm64"
             rm -rf "$2" && mkdir -p "$2" && cd "$2"
             "${BINUTILS_DIR}"/configure \
                 --disable-multilib \
@@ -32,6 +34,7 @@ build_binutils() {
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM")
+            echo "Starting Binutils Build for arm"
             rm -rf "$2" && mkdir -p "$2" && cd "$2"
             "${BINUTILS_DIR}"/configure \
                 --disable-multilib \
@@ -96,6 +99,21 @@ for arg in "$@"; do
             IFS=', ' read -r -a archs <<<"${targets}"
             echo "Build dir path: ${BINUTILS_BUILD}"
             echo "Installing at: ${INSTALL_DIR}"
+            if [[ -d ${BINUTILS_DIR} ]]; then
+                cd "${BINUTILS_DIR}"
+                if ! git status &>/dev/null; then
+                    echo "GNU binutils dir found but not a git repo, recloning"
+                    cd "${BUILDDIR}" && rm -rf "${BINUTILS_DIR}" && binutils_clone "${BINUTILS_VER}"
+                else
+                    echo "Existing binutils repo found, skipping clone"
+                    echo "Fetching new changes"
+                    binutils_pull "${BINUTILS_VER}"
+                    cd "${BUILDDIR}"
+                fi
+            else
+                echo "cloning GNU binutils repo"
+                binutils_clone "${BINUTILS_VER}"
+            fi
             for arch in "${archs[@]}"; do
                 build_binutils "${arch}" "${BINUTILS_BUILD}" "${INSTALL_DIR}"
             done
