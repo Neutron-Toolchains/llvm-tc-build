@@ -10,41 +10,41 @@ INSTALL_DIR="${BUILDDIR}/install"
 BINUTILS_BUILD="${BUILDDIR}/binutils-build"
 
 # The main build function that builds GNU binutils.
-build() {
+build_binutils() {
 
-    if [[ -d "${BINUTILS_BUILD}" ]]; then
-        rm -rf "${BINUTILS_BUILD}"
+    if [[ -d "$2" ]]; then
+        rm -rf "$2"
     fi
-    mkdir -p "${BINUTILS_BUILD}"
-    cd "${BINUTILS_BUILD}"
+    mkdir -p "$2"
+    cd "$2"
     case $1 in
         "X86")
             "${BINUTILS_DIR}"/configure \
-                --target=x86_64-pc-linux-gnu \
-                --enable-targets=x86_64-pep \
                 --enable-relro \
+                --enable-targets=x86_64-pep \
+                --prefix="$3" \
+                --target=x86_64-pc-linux-gnu \
                 --with-pic \
-                --prefix="${INSTALL_DIR}" \
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM64")
             "${BINUTILS_DIR}"/configure \
-                --target=aarch64-linux-gnu \
-                --prefix="${INSTALL_DIR}" \
+                --disable-multilib \
                 --disable-nls \
+                --prefix="$3" \
+                --target=aarch64-linux-gnu \
                 --with-gnu-as \
                 --with-gnu-ld \
-                --disable-multilib \
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM")
             "${BINUTILS_DIR}"/configure \
-                --target=arm-linux-gnueabi \
-                --prefix="${INSTALL_DIR}" \
+                --disable-multilib \
                 --disable-nls \
+                --prefix="$3" \
+                --target=arm-linux-gnueabi \
                 --with-gnu-as \
                 --with-gnu-ld \
-                --disable-multilib \
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         *)
@@ -60,17 +60,17 @@ build() {
 # This is where the build starts.
 echo "Starting Binutils Build"
 echo "Starting Binutils Build for x86-64"
-build "X86" || (
+build_binutils "X86" "${BINUTILS_BUILD}" "${INSTALL_DIR}" || (
     echo "x86-64 Build failed!"
     exit 1
 )
 echo "Starting Binutils Build for arm"
-build "ARM" || (
+build_binutils "ARM" "${BINUTILS_BUILD}" "${INSTALL_DIR}" || (
     echo "arm Build failed!"
     exit 1
 )
 echo "Starting Binutils Build for arm64"
-build "ARM64" || (
+build_binutils "ARM64" "${BINUTILS_BUILD}" "${INSTALL_DIR}" || (
     echo "arm64 Build failed!"
     exit 1
 )
