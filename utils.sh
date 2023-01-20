@@ -97,7 +97,6 @@ export COMMON_BINUTILS_FLAGS=(
     '--disable-compressed-debug-sections'
 )
 
-export BINUTILS_VER="2_40"
 export BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
 export INSTALL_DIR="${BUILDDIR}/install"
 export BINUTILS_BUILD="${BUILDDIR}/binutils-build"
@@ -121,7 +120,7 @@ llvm_pull() {
 
 binutils_clone() {
 
-    if ! git clone "https://sourceware.org/git/binutils-gdb.git" -b "binutils-${BINUTILS_VER}-branch"; then
+    if ! git clone "https://sourceware.org/git/binutils-gdb.git" -b "binutils-$1-branch"; then
         echo "binutils git clone: Failed" >&2
         exit 1
     fi
@@ -129,7 +128,7 @@ binutils_clone() {
 
 binutils_pull() {
 
-    if ! git "pull https://sourceware.org/git/binutils-gdb.git" "binutils-${BINUTILS_VER}-branch"; then
+    if ! git "pull https://sourceware.org/git/binutils-gdb.git" "binutils-$1-branch"; then
         echo "binutils git Pull: Failed" >&2
         exit 1
     fi

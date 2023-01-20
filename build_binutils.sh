@@ -3,6 +3,9 @@ source utils.sh
 # A Script to build GNU binutils
 set -e
 
+# Binutils version
+BINUTILS_VER="2_40"
+
 # The main build function that builds GNU binutils.
 build_binutils() {
 
@@ -56,16 +59,16 @@ for arg in "$@"; do
                 cd "${BINUTILS_DIR}"
                 if ! git status &>/dev/null; then
                     echo "GNU binutils dir found but not a git repo, recloning"
-                    cd "${BUILDDIR}" && rm -rf "${BINUTILS_DIR}" && binutils_clone
+                    cd "${BUILDDIR}" && rm -rf "${BINUTILS_DIR}" && binutils_clone "${BINUTILS_VER}"
                 else
                     echo "Existing binutils repo found, skipping clone"
                     echo "Fetching new changes"
-                    binutils_pull
+                    binutils_pull "${BINUTILS_VER}"
                     cd "${BUILDDIR}"
                 fi
             else
                 echo "cloning GNU binutils repo"
-                binutils_clone
+                binutils_clone "${BINUTILS_VER}"
             fi
             exit 0
             ;;
