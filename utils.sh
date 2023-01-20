@@ -2,6 +2,15 @@
 # Some common functions and varibles to be sourced by our build scripts
 
 # Variables
+
+export CLEAN_BUILD=1
+export POLLY_OPT=0
+export BOLT_OPT=0
+export LLVM_OPT=0
+export USE_MOLD=0
+export FINAL_INSTALL_DIR="install"
+export CI=0
+
 export POLLY_OPT_FLAGS=(
     "-fopenmp"
     "-mllvm -polly"
@@ -83,7 +92,11 @@ export COMMON_BINUTILS_FLAGS=(
     '--disable-compressed-debug-sections'
 )
 
+BUILDDIR=$(pwd)
 export BINUTILS_VER="2_40"
+export BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
+export INSTALL_DIR="${BUILDDIR}/install"
+export BINUTILS_BUILD="${BUILDDIR}/binutils-build"
 
 # Functions
 llvm_clone() {

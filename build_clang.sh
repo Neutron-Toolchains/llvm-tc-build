@@ -21,30 +21,36 @@ BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
 TEMP_BINTUILS_BUILD="${BUILDDIR}/temp-binutils-build"
 TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
 
-# Do clean build (Range: 0-3)
-# 0: Dirty build
-# 1: Clean build
-CLEAN_BUILD=1
-
-# Optimize final toolchain with Polly
-# 0: Disable
-# 1: Enable
-POLLY_OPT=1
-
-#Optimize final toolchain with BOLT
-# 0: Disable
-# 1: Enable
-BOLT_OPT=1
-
-# Optimize final toolchain with LLVM's transformation passes
-# 0: Disable
-# 1: Enable
-LLVM_OPT=0
-
-# Use mold linker
-# 0: Disable
-# 1: Enable
-USE_MOLD=0
+for arg in "$@"; do
+    case "${arg}" in
+        "--incremental")
+            CLEAN_BUILD=0
+            ;;
+        "--polly-opt")
+            POLLY_OPT=1
+            ;;
+        "--bolt-opt")
+            BOLT_OPT=1
+            ;;
+        "--llvm-opt")
+            LLVM_OPT=1
+            ;;
+        "--use-mold")
+            USE_MOLD=1
+            ;;
+        "--install-dir"*)
+            FINAL_INSTALL_DIR="${arg#*--install-dir}"
+            FINAL_INSTALL_DIR=${FINAL_INSTALL_DIR:1}
+            ;;
+        "--ci-run")
+            CI=1
+            ;;
+        *)
+            echo "Invalid argument passed: ${arg}"
+            exit 1
+            ;;
+    esac
+done
 
 # DO NOT CHANGE
 USE_SYSTEM_BINUTILS_64=1
@@ -646,6 +652,6 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
 fi
 
 echo "Moving stage 3 install dir to build dir"
-mv "${OUT}"/install "${BUILDDIR}"/install/
+mv "${OUT}"/install "${BUILDDIR}"/"${FINAL_INSTALL_DIR}"/
 echo "LLVM build finished. Final toolchain installed at:"
-echo "${BUILDDIR}/install"
+echo "${BUILDDIR}/${FINAL_INSTALL_DIR}"

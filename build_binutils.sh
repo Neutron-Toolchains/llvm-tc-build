@@ -3,22 +3,12 @@ source utils.sh
 # A Script to build GNU binutils
 set -e
 
-# Specify some variables.
-BUILDDIR=$(pwd)
-BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
-INSTALL_DIR="${BUILDDIR}/install"
-BINUTILS_BUILD="${BUILDDIR}/binutils-build"
-
 # The main build function that builds GNU binutils.
 build_binutils() {
 
-    if [[ -d "$2" ]]; then
-        rm -rf "$2"
-    fi
-    mkdir -p "$2"
-    cd "$2"
     case $1 in
         "X86")
+            rm -rf "$2" && mkdir -p "$2" && cd "$2"
             "${BINUTILS_DIR}"/configure \
                 --enable-relro \
                 --enable-targets=x86_64-pep \
@@ -28,6 +18,7 @@ build_binutils() {
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM64")
+            rm -rf "$2" && mkdir -p "$2" && cd "$2"
             "${BINUTILS_DIR}"/configure \
                 --disable-multilib \
                 --disable-nls \
@@ -38,6 +29,7 @@ build_binutils() {
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         "ARM")
+            rm -rf "$2" && mkdir -p "$2" && cd "$2"
             "${BINUTILS_DIR}"/configure \
                 --disable-multilib \
                 --disable-nls \
@@ -48,7 +40,7 @@ build_binutils() {
                 "${COMMON_BINUTILS_FLAGS[@]}"
             ;;
         *)
-            echo "You have specified a wrong architecture type or one that we do not support! Do specify the correct one or feel free to make a PR with the relevant changes to add support to the architecture that you are trying to build this toolchain for."
+            echo "Invalid target: $1. Supported targets are: ARM,ARM64,X86"
             exit 1
             ;;
     esac
@@ -57,20 +49,35 @@ build_binutils() {
     make install -j$(($(nproc --all) + 2)) >/dev/null
 }
 
-# This is where the build starts.
-echo "Starting Binutils Build"
-echo "Starting Binutils Build for x86-64"
-build_binutils "X86" "${BINUTILS_BUILD}" "${INSTALL_DIR}" || (
-    echo "x86-64 Build failed!"
-    exit 1
-)
-echo "Starting Binutils Build for arm"
-build_binutils "ARM" "${BINUTILS_BUILD}" "${INSTALL_DIR}" || (
-    echo "arm Build failed!"
-    exit 1
-)
-echo "Starting Binutils Build for arm64"
-build_binutils "ARM64" "${BINUTILS_BUILD}" "${INSTALL_DIR}" || (
-    echo "arm64 Build failed!"
-    exit 1
-)
+for arg in "$@"; do
+    case "${arg}" in
+        "--install-dir"*)
+            INSTALL_DIR="${arg#*--install-dir}"
+            INSTALL_DIR=${INSTALL_DIR:1}
+            ;;
+        "--build-dir"*)
+            BINUTILS_BUILD="${arg#*--build-dir}"
+            BINUTILS_BUILD=${BINUTILS_BUILD:1}
+            ;;
+    esac
+done
+
+for arg in "$@"; do
+    case "${arg}" in
+        "--targets"*)
+            targets="${arg#*--targets}"
+            targets=${targets:1}
+            IFS=', ' read -r -a archs <<<"${targets}"
+            echo "Build dir path: ${BINUTILS_BUILD}"
+            echo "Installing at: ${INSTALL_DIR}"
+            for arch in "${archs[@]}"; do
+                build_binutils "${arch}" "${BINUTILS_BUILD}" "${INSTALL_DIR}"
+            done
+            exit 0
+            ;;
+        *)
+            echo "Invalid argument passed: ${arg}"
+            exit 1
+            ;;
+    esac
+done
