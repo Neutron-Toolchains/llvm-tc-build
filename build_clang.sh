@@ -217,16 +217,16 @@ if [[ -d ${LLVM_DIR} ]]; then
     if ! git status; then
         echo "llvm-project dir found but not a git repo, recloning"
         cd "${BUILDDIR}"
-        llvm_clone
+        llvm_fetch "clone"
     else
         echo "Existing llvm repo found, skipping clone"
         echo "Fetching new changes"
-        llvm_pull
+        llvm_fetch "pull"
         cd "${BUILDDIR}"
     fi
 else
     echo "cloning llvm project repo"
-    llvm_clone
+    llvm_fetch "clone"
 fi
 
 bash build_binutils.sh --sync-source-only

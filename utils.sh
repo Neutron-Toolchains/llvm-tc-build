@@ -103,18 +103,10 @@ export INSTALL_DIR="${BUILDDIR}/install"
 export BINUTILS_BUILD="${BUILDDIR}/binutils-build"
 
 # Functions
-llvm_clone() {
+llvm_fetch() {
 
-    if ! git clone https://github.com/llvm/llvm-project.git; then
-        echo "llvm-project git clone: Failed" >&2
-        exit 1
-    fi
-}
-
-llvm_pull() {
-
-    if ! git pull https://github.com/llvm/llvm-project.git; then
-        echo "llvm-project git Pull: Failed" >&2
+    if ! git "$1" https://github.com/llvm/llvm-project.git; then
+        echo "llvm-project git ${1}: Failed" >&2
         exit 1
     fi
 }
