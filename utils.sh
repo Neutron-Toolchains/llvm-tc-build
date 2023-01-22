@@ -16,6 +16,7 @@ export CI=0
 export TEMP_BINTUILS_BUILD="${BUILDDIR}/temp-binutils-build"
 export TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
 export LLVM_BUILD="${BUILDDIR}/llvm-build"
+export SHALLOW_CLONE=0
 
 export POLLY_OPT_FLAGS=(
     "-fopenmp"
@@ -105,7 +106,7 @@ export BINUTILS_BUILD="${BUILDDIR}/binutils-build"
 # Functions
 llvm_fetch() {
 
-    if ! git "$1" https://github.com/llvm/llvm-project.git; then
+    if ! git "$1" https://github.com/llvm/llvm-project.git "$2"; then
         echo "llvm-project git ${1}: Failed" >&2
         exit 1
     fi
@@ -113,16 +114,16 @@ llvm_fetch() {
 
 binutils_clone() {
 
-    if ! git clone "https://sourceware.org/git/binutils-gdb.git" -b "binutils-$1-branch"; then
+    if ! git clone "https://sourceware.org/git/binutils-gdb.git" -b "binutils-$1-branch" "$2"; then
         echo "binutils git clone: Failed" >&2
         exit 1
     fi
 }
 
-binutils_pull() {
+binutils_fetch() {
 
-    if ! git "pull https://sourceware.org/git/binutils-gdb.git" "binutils-$1-branch"; then
-        echo "binutils git Pull: Failed" >&2
+    if ! git "$1" "https://sourceware.org/git/binutils-gdb.git" "binutils-$2-branch" "$3"; then
+        echo "binutils git $1: Failed" >&2
         exit 1
     fi
 }

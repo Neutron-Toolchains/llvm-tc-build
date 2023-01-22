@@ -19,6 +19,9 @@ for arg in "$@"; do
         "--incremental")
             CLEAN_BUILD=0
             ;;
+        "--shallow-clone")
+            SHALLOW_CLONE=1
+            ;;
         "--polly-opt")
             POLLY_OPT=1
             ;;
@@ -213,23 +216,36 @@ fi
 echo "Starting LLVM Build"
 # Where all relevant build-related repositories are cloned.
 if [[ -d ${LLVM_DIR} ]]; then
-    cd "${LLVM_DIR}"/
-    if ! git status; then
-        echo "llvm-project dir found but not a git repo, recloning"
-        cd "${BUILDDIR}"
-        llvm_fetch "clone"
+    echo "Existing llvm source found. Fetching new changes"
+    cd "${LLVM_DIR}"
+    if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
+        llvm_fetch "fetch" "--depth=1"
+        git reset --hard FETCH_HEAD
+        git clean -dfx
     else
-        echo "Existing llvm repo found, skipping clone"
-        echo "Fetching new changes"
-        llvm_fetch "pull"
-        cd "${BUILDDIR}"
+        if $(git rev-parse --is-shallow-repository); then
+            llvm_fetch "fetch" "--depth=1"
+            git reset --hard FETCH_HEAD
+            git clean -dfx
+        else
+            llvm_fetch "pull"
+        fi
     fi
+    cd "${BUILDDIR}"
 else
-    echo "cloning llvm project repo"
-    llvm_fetch "clone"
+    echo "Cloning llvm project repo"
+    if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
+        llvm_fetch "clone" "--depth=1"
+    else
+        llvm_fetch "clone"
+    fi
 fi
 
-bash build_binutils.sh --sync-source-only
+if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
+    bash build_binutils.sh --sync-source-only --shallow-clone
+else
+    bash build_binutils.sh --sync-source-only
+fi
 
 if [[ ${CLEAN_BUILD} -eq 1 ]]; then
     rm -rf "${LLVM_BUILD}"
