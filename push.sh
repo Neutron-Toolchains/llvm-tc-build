@@ -13,16 +13,9 @@ rel_tag="$(date "+%d%m%Y")"      # "{date}{month}{year}" format
 rel_date="$(date "+%-d %B, %Y")" # "Day Month, Year" format
 rel_file="${CURRENT_DIR}/neutron-clang-${rel_tag}.tar.zst"
 
-neutron_clone() {
+neutron_fetch() {
 
-    if ! git clone https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
-        exit 1
-    fi
-}
-
-neutron_pull() {
-
-    if ! git pull https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
+    if ! git ${1} https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
         exit 1
     fi
 }
@@ -51,13 +44,13 @@ if [[ -d "${NEUTRON_DIR}"/ ]]; then
     cd "${NEUTRON_DIR}"/
     if ! git status; then
         cd "${CURRENT_DIR}"
-        neutron_clone
+        neutron_fetch "clone"
     else
-        neutron_pull
+        neutron_fetch "pull"
         cd "${CURRENT_DIR}"
     fi
 else
-    neutron_clone
+    neutron_fetch "clone"
 fi
 
 cd "${INSTALL_DIR}"
