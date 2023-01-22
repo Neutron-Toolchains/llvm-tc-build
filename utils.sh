@@ -139,12 +139,11 @@ get_linux_tarball() {
 
     if [[ -e linux-"$1".tar.xz ]]; then
         echo "Existing linux-$1 tarball found, skipping download"
-        tar xf linux-"$1".tar.xz
     else
         echo "Downloading linux-$1 tarball"
         wget "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$1.tar.xz"
-        tar xf linux-"$1".tar.xz
     fi
+    tar xf linux-"$1".tar.xz
 }
 
 clear_if_unused() {
