@@ -319,7 +319,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_SHARED_LINKER_FLAGS="${OPT_FLAGS_LD}" \
     "${LLVM_PROJECT}"
 
-ninja -j"$(nproc --all)" >/dev/null || (
+ninja -j"$(nproc --all)" || (
     echo "Could not build project!"
     exit 1
 )
@@ -365,7 +365,7 @@ if [[ ${LLVM_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${LLVM_OPT_FLAGS[*]}"
 fi
 
-cmake -G Ninja -Wno-dev --log-level=NOTICE \
+cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCLANG_VENDOR="Neutron" \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
     -DCMAKE_BUILD_TYPE=Release \
@@ -532,7 +532,7 @@ else
     mkdir "${OUT}"
 fi
 cd "${OUT}"
-cmake -G Ninja -Wno-dev --log-level=NOTICE \
+cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCLANG_VENDOR="Neutron" \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
     -DCMAKE_BUILD_TYPE=Release \
