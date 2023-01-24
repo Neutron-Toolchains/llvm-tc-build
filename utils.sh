@@ -104,6 +104,10 @@ export INSTALL_DIR="${BUILDDIR}/install"
 export BINUTILS_BUILD="${BUILDDIR}/binutils-build"
 export NO_UPDATE=0
 
+tgsend() {
+    curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" -d chat_id="@neutron_updates" -d "disable_web_page_preview=true" -d "parse_mode=html" -d text="$1"
+}
+
 # Functions
 llvm_fetch() {
 

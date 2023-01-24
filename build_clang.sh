@@ -59,8 +59,8 @@ clear_if_unused "BOLT_OPT" "BOLT_OPT_FLAGS"
 
 # Send a notification if building on CI
 if [[ ${CI} -eq 1 ]]; then
-    telegram-send --format html "\
-		<b>🔨 Neutron Clang Build Started</b>
+    tgsend "\
+        <b>🔨 Neutron Clang Build Started</b>
 		Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>"
 fi
 
