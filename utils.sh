@@ -54,32 +54,32 @@ export LLVM_OPT_FLAGS=(
 )
 
 export BOLT_OPT_FLAGS=(
-    '--dyno-stats'
-    '--eliminate-unreachable'
-    '--frame-opt=hot'
-    '--icf=1'
-    '--indirect-call-promotion=all'
-    '--inline-all'
-    '--inline-ap'
-    '--jump-tables=aggressive'
-    '--peepholes=all'
-    '--plt=hot'
-    '--reorder-blocks=ext-tsp'
-    '--reorder-functions-use-hot-size'
-    '--reorder-functions=hfsort+'
-    '--split-all-cold'
-    '--split-eh'
-    '--split-functions'
+    "--dyno-stats"
+    "--eliminate-unreachable"
+    "--frame-opt=hot"
+    "--icf=1"
+    "--indirect-call-promotion=all"
+    "--inline-all"
+    "--inline-ap"
+    "--jump-tables=aggressive"
+    "--peepholes=all"
+    "--plt=hot"
+    "--reorder-blocks=ext-tsp"
+    "--reorder-functions-use-hot-size"
+    "--reorder-functions=hfsort+"
+    "--split-all-cold"
+    "--split-eh"
+    "--split-functions"
     "--thread-count=$(nproc --all)"
-    '--use-gnu-stack'
+    "--use-gnu-stack"
 )
 
 export COMMON_BINUTILS_FLAGS=(
-    'CC="gcc"'
-    'CXX="g++"'
-    'CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize"'
-    'CXXFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize"'
-    'LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"'
+    'CC=gcc'
+    'CXX=g++'
+    'CFLAGS=-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize'
+    'CXXFLAGS=-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize'
+    'LDFLAGS=-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug'
     '--disable-docs'
     '--disable-gdb'
     '--disable-gdbserver'
@@ -94,7 +94,7 @@ export COMMON_BINUTILS_FLAGS=(
     '--enable-plugins'
     '--enable-threads'
     '--quiet'
-    '--with-pkgversion="Neutron Binutils"'
+    '--with-pkgversion=Neutron Binutils'
     '--disable-werror'
     '--disable-compressed-debug-sections'
 )
