@@ -77,7 +77,7 @@ build_temp_binutils() {
         target="ARM"
     fi
     cd "${BUILDDIR}"
-    bash build_binutils.sh --targets="${target}" --install-dir="${TEMP_BINTUILS_INSTALL}" --build-dir="${TEMP_BINTUILS_BUILD}"
+    bash build_binutils.sh --targets="${target}" --install-dir="${TEMP_BINTUILS_INSTALL}" --build-dir="${TEMP_BINTUILS_BUILD}" --no-update
     cd "${currdir}"
     unset currdir
     unset target
