@@ -102,6 +102,7 @@ export COMMON_BINUTILS_FLAGS=(
 export BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
 export INSTALL_DIR="${BUILDDIR}/install"
 export BINUTILS_BUILD="${BUILDDIR}/binutils-build"
+export NO_UPDATE=0
 
 # Functions
 llvm_fetch() {

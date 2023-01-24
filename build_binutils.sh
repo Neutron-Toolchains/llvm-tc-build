@@ -57,6 +57,14 @@ build_binutils() {
 
 for arg in "$@"; do
     case "${arg}" in
+        "--no-update")
+            NO_UPDATE=1
+            ;;
+    esac
+done
+
+for arg in "$@"; do
+    case "${arg}" in
         "--shallow-clone")
             SHALLOW_CLONE=1
             ;;
@@ -67,22 +75,24 @@ for arg in "$@"; do
     case "${arg}" in
         "--sync-source-only")
             if [[ -d ${BINUTILS_DIR} ]]; then
-                echo "Existing binutils source found. Fetching new changes"
-                cd "${BINUTILS_DIR}"
-                if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
-                    binutils_fetch "fetch" "${BINUTILS_VER}" "--depth=1"
-                    git reset --hard FETCH_HEAD
-                    git clean -dfx
-                else
-                    if $(git rev-parse --is-shallow-repository); then
+                if [[ ${NO_UPDATE} -eq 0 ]]; then
+                    echo "Existing binutils source found. Fetching new changes"
+                    cd "${BINUTILS_DIR}"
+                    if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
                         binutils_fetch "fetch" "${BINUTILS_VER}" "--depth=1"
                         git reset --hard FETCH_HEAD
                         git clean -dfx
                     else
-                        binutils_fetch "pull" "${BINUTILS_VER}"
+                        if $(git rev-parse --is-shallow-repository); then
+                            binutils_fetch "fetch" "${BINUTILS_VER}" "--depth=1"
+                            git reset --hard FETCH_HEAD
+                            git clean -dfx
+                        else
+                            binutils_fetch "pull" "${BINUTILS_VER}"
+                        fi
                     fi
+                    cd "${BUILDDIR}"
                 fi
-                cd "${BUILDDIR}"
             else
                 echo "Cloning binutils repo"
                 if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
@@ -118,22 +128,24 @@ for arg in "$@"; do
             echo "Build dir path: ${BINUTILS_BUILD}"
             echo "Installing at: ${INSTALL_DIR}"
             if [[ -d ${BINUTILS_DIR} ]]; then
-                echo "Existing binutils source found. Fetching new changes"
-                cd "${BINUTILS_DIR}"
-                if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
-                    binutils_fetch "fetch" "${BINUTILS_VER}" "--depth=1"
-                    git reset --hard FETCH_HEAD
-                    git clean -dfx
-                else
-                    if $(git rev-parse --is-shallow-repository); then
+                if [[ ${NO_UPDATE} -eq 0 ]]; then
+                    echo "Existing binutils source found. Fetching new changes"
+                    cd "${BINUTILS_DIR}"
+                    if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
                         binutils_fetch "fetch" "${BINUTILS_VER}" "--depth=1"
                         git reset --hard FETCH_HEAD
                         git clean -dfx
                     else
-                        binutils_fetch "pull" "${BINUTILS_VER}"
+                        if $(git rev-parse --is-shallow-repository); then
+                            binutils_fetch "fetch" "${BINUTILS_VER}" "--depth=1"
+                            git reset --hard FETCH_HEAD
+                            git clean -dfx
+                        else
+                            binutils_fetch "pull" "${BINUTILS_VER}"
+                        fi
                     fi
+                    cd "${BUILDDIR}"
                 fi
-                cd "${BUILDDIR}"
             else
                 echo "Cloning binutils repo"
                 if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
