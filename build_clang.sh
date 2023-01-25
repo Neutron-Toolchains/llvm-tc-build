@@ -108,7 +108,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
         if [[ $1 == "perf" ]]; then
             echo "Training arm64"
             cd "${KERNEL_DIR}"
-            perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
+            perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" \
                 "${KMAKEFLAGS[@]}" \
                 ARCH=arm64 \
                 CROSS_COMPILE=aarch64-linux-gnu- || (
@@ -119,7 +119,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
 
             echo "Training x86"
             cd "${KERNEL_DIR}"
-            perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(nproc --all)" \
+            perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" \
                 "${KMAKEFLAGS[@]}" || (
                 echo "Kernel Build failed!"
                 exit 1
@@ -169,7 +169,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
 
             echo "Training arm64"
             cd "${KERNEL_DIR}"
-            make distclean defconfig all -sj"$(nproc --all)" \
+            make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" \
                 "${KMAKEFLAGS[@]}" \
                 ARCH=arm64 \
                 CROSS_COMPILE=aarch64-linux-gnu- || (
@@ -180,7 +180,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
 
             echo "Training x86"
             cd "${KERNEL_DIR}"
-            make distclean defconfig all -sj"$(nproc --all)" \
+            make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" \
                 "${KMAKEFLAGS[@]}" || (
                 echo "Kernel Build failed!"
                 exit 1
@@ -325,8 +325,8 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_RANLIB="${LLVM_BIN_DIR}"/llvm-ranlib \
     -DCMAKE_READELF="${LLVM_BIN_DIR}"/llvm-readelf \
     -DCMAKE_ADDR2LINE="${LLVM_BIN_DIR}"/llvm-addr2line \
-    -DLLVM_PARALLEL_COMPILE_JOBS="$(nproc --all)" \
-    -DLLVM_PARALLEL_LINK_JOBS="$(nproc --all)" \
+    -DLLVM_PARALLEL_COMPILE_JOBS="$(getconf _NPROCESSORS_ONLN)" \
+    -DLLVM_PARALLEL_LINK_JOBS="$(getconf _NPROCESSORS_ONLN)" \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
@@ -335,7 +335,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_SHARED_LINKER_FLAGS="${OPT_FLAGS_LD}" \
     "${LLVM_PROJECT}"
 
-ninja -j"$(nproc --all)" || (
+ninja -j"$(getconf _NPROCESSORS_ONLN)" || (
     echo "Could not build project!"
     exit 1
 )
@@ -417,8 +417,8 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DLLVM_BUILD_RUNTIME=OFF \
     -DLLVM_LINK_LLVM_DYLIB=ON \
     -DLLVM_VP_COUNTERS_PER_SITE=6 \
-    -DLLVM_PARALLEL_COMPILE_JOBS="$(nproc --all)" \
-    -DLLVM_PARALLEL_LINK_JOBS="$(nproc --all)" \
+    -DLLVM_PARALLEL_COMPILE_JOBS="$(getconf _NPROCESSORS_ONLN)" \
+    -DLLVM_PARALLEL_LINK_JOBS="$(getconf _NPROCESSORS_ONLN)" \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
@@ -429,7 +429,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     "${LLVM_PROJECT}"
 
 echo "Installing to ${OUT}/install"
-ninja install -j"$(nproc --all)" >/dev/null || (
+ninja install -j"$(getconf _NPROCESSORS_ONLN)" >/dev/null || (
     echo "Could not install project!"
     exit 1
 )
@@ -498,10 +498,10 @@ KMAKEFLAGS=("LLVM=1"
     "HOSTLD=${STAGE2}/ld.lld")
 
 echo "Training x86"
-time make distclean defconfig all -sj"$(nproc --all)" "${KMAKEFLAGS[@]}" || exit ${?}
+time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" "${KMAKEFLAGS[@]}" || exit ${?}
 
 echo "Training arm64"
-time make distclean defconfig all -sj"$(nproc --all)" ARCH=arm64 "${KMAKEFLAGS[@]}" \
+time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm64 "${KMAKEFLAGS[@]}" \
     CROSS_COMPILE=aarch64-linux-gnu- || exit ${?}
 
 unset LLD_IN_TEST
@@ -584,8 +584,8 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCLANG_TABLEGEN="${STAGE1}"/clang-tblgen \
     -DLLVM_TABLEGEN="${STAGE1}"/llvm-tblgen \
     -DLLVM_PROFDATA_FILE="${PROFILES}"/clang.profdata \
-    -DLLVM_PARALLEL_COMPILE_JOBS="$(nproc --all)" \
-    -DLLVM_PARALLEL_LINK_JOBS="$(nproc --all)" \
+    -DLLVM_PARALLEL_COMPILE_JOBS="$(getconf _NPROCESSORS_ONLN)" \
+    -DLLVM_PARALLEL_LINK_JOBS="$(getconf _NPROCESSORS_ONLN)" \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
@@ -596,7 +596,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     "${LLVM_PROJECT}"
 
 echo "Installing to ${OUT}/install"
-ninja install -j"$(nproc --all)" || (
+ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
     echo "Could not install project!"
     exit 1
 )

@@ -51,8 +51,8 @@ build_binutils() {
             ;;
     esac
 
-    make -j$(($(nproc --all) + 2)) >/dev/null
-    make install -j$(($(nproc --all) + 2)) >/dev/null
+    make -j$(($(getconf _NPROCESSORS_ONLN) + 2)) >/dev/null
+    make install -j$(($(getconf _NPROCESSORS_ONLN) + 2)) >/dev/null
 }
 
 for arg in "$@"; do

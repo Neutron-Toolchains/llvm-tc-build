@@ -70,7 +70,7 @@ export BOLT_OPT_FLAGS=(
     "--split-all-cold"
     "--split-eh"
     "--split-functions"
-    "--thread-count=$(nproc --all)"
+    "--thread-count=$(getconf _NPROCESSORS_ONLN)"
     "--use-gnu-stack"
 )
 
