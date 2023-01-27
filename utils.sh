@@ -15,7 +15,6 @@ export FINAL_INSTALL_DIR="install"
 export CI=0
 export TEMP_BINTUILS_BUILD="${BUILDDIR}/temp-binutils-build"
 export TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
-export LLVM_BUILD="${BUILDDIR}/llvm-build"
 export SHALLOW_CLONE=0
 
 export POLLY_OPT_FLAGS=(
