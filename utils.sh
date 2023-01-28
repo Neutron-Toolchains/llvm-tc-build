@@ -91,8 +91,8 @@ export BOLT_OPT_FLAGS=(
 export COMMON_BINUTILS_FLAGS=(
     'CC=gcc'
     'CXX=g++'
-    'CFLAGS=-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize'
-    'CXXFLAGS=-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize'
+    'CFLAGS=-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none'
+    'CXXFLAGS=-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none'
     'LDFLAGS=-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug'
     '--disable-docs'
     '--disable-gdb'
