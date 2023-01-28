@@ -26,6 +26,8 @@ export COMMON_OPT_FLAGS=(
     "-flto=thin"
     "-fsplit-lto-unit"
     "-falign-functions=32"
+    "-fno-math-errno"
+    "-fno-trapping-math"
 )
 
 export POLLY_OPT_FLAGS=(
