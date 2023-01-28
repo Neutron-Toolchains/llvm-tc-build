@@ -29,6 +29,7 @@ export COMMON_OPT_FLAGS=(
     "-fno-math-errno"
     "-fno-trapping-math"
     "-fomit-frame-pointer"
+    "-mharden-sls=none"
 )
 
 export POLLY_OPT_FLAGS=(
