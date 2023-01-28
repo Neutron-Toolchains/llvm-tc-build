@@ -17,7 +17,7 @@ export TEMP_BINTUILS_BUILD="${BUILDDIR}/temp-binutils-build"
 export TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
 export SHALLOW_CLONE=0
 
-export COMMON_OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3"
+export COMMON_OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3,--strip-debug"
 
 export COMMON_OPT_FLAGS=(
     "-O3"
