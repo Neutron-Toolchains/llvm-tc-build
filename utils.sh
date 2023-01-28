@@ -17,6 +17,17 @@ export TEMP_BINTUILS_BUILD="${BUILDDIR}/temp-binutils-build"
 export TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
 export SHALLOW_CLONE=0
 
+export COMMON_OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3"
+
+export COMMON_OPT_FLAGS=(
+    "-O3"
+    "-ffunction-sections"
+    "-fdata-sections"
+    "-flto=thin"
+    "-fsplit-lto-unit"
+    "-falign-functions=32"
+)
+
 export POLLY_OPT_FLAGS=(
     "-fopenmp"
     "-mllvm -polly"

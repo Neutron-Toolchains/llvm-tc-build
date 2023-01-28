@@ -278,8 +278,8 @@ else
     LINKER_DIR="${LLVM_BIN_DIR}"
 fi
 
-OPT_FLAGS="-O3 -march=native -mtune=native -ffunction-sections -fdata-sections"
-OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now -fuse-ld=${LINKER_DIR}/${LINKER}"
+OPT_FLAGS="-march=native -mtune=native ${COMMON_OPT_FLAGS[*]}"
+OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 STAGE1_PROJS="clang;lld;compiler-rt"
 
@@ -371,8 +371,8 @@ else
     LINKER_DIR="${STAGE1}"
 fi
 
-OPT_FLAGS="-march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -O3"
-OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3 -fuse-ld=${LINKER_DIR}/${LINKER}"
+OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]}"
+OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
@@ -522,7 +522,7 @@ echo "Stage 3 Build: Start"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -falign-functions=32"
+OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]}"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
 fi
