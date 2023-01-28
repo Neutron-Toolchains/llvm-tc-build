@@ -522,7 +522,7 @@ echo "Stage 3 Build: Start"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=full -falign-functions=32"
+OPT_FLAGS="-O3 -march=x86-64 -mtune=generic -ffunction-sections -fdata-sections -flto=thin -fsplit-lto-unit -falign-functions=32"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
 fi
@@ -569,7 +569,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCOMPILER_RT_BUILD_CRT=OFF \
     -DCOMPILER_RT_BUILD_XRAY=OFF \
     -DLLVM_ENABLE_TERMINFO=OFF \
-    -DLLVM_ENABLE_LTO=Full \
+    -DLLVM_ENABLE_LTO=Thin \
     -DCMAKE_C_COMPILER="${STAGE1}"/clang \
     -DCMAKE_CXX_COMPILER="${STAGE1}"/clang++ \
     -DCMAKE_AR="${STAGE1}"/llvm-ar \
