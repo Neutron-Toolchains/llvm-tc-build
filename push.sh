@@ -15,7 +15,7 @@ rel_file="${CURRENT_DIR}/neutron-clang-${rel_tag}.tar.zst"
 
 neutron_fetch() {
 
-    if ! git ${1} https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
+    if ! git "${1}" https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
         exit 1
     fi
 }
