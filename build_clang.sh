@@ -310,6 +310,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCOMPILER_RT_BUILD_XRAY=OFF \
     -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
     -DCLANG_VENDOR="Neutron" \
+    -DLLD_VENDOR="Neutron" \
     -DLLVM_ENABLE_BACKTRACES=OFF \
     -DLLVM_ENABLE_WARNINGS=OFF \
     -DLLVM_ENABLE_LTO=Thin \
@@ -384,6 +385,7 @@ fi
 
 cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCLANG_VENDOR="Neutron" \
+    -DLLD_VENDOR="Neutron" \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLVM_ENABLE_WARNINGS=OFF \
@@ -551,6 +553,7 @@ fi
 cd "${OUT}"
 cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCLANG_VENDOR="Neutron" \
+    -DLLD_VENDOR="Neutron" \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLVM_ENABLE_WARNINGS=OFF \
