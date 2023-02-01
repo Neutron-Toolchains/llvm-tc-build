@@ -81,7 +81,7 @@ export BOLT_OPT_FLAGS=(
     "--plt=hot"
     "--reorder-blocks=ext-tsp"
     "--reorder-functions=hfsort+"
-    "--sctc-mod=always"
+    "--sctc-mode=always"
     "--simplify-conditional-tail-calls"
     "--split-all-cold"
     "--split-eh"
