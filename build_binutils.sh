@@ -88,9 +88,11 @@ for arg in "$@"; do
                             git reset --hard FETCH_HEAD
                             git clean -dfx
                         else
+                            git reset --hard HEAD
                             binutils_fetch "pull" "${BINUTILS_VER}"
                         fi
                     fi
+                    sed -i '/^development=/s/true/false/' bfd/development.sh
                     cd "${BUILDDIR}"
                 fi
             else
@@ -100,6 +102,7 @@ for arg in "$@"; do
                 else
                     binutils_clone "${BINUTILS_VER}"
                 fi
+                sed -i '/^development=/s/true/false/' binutils-gdb/bfd/development.sh
             fi
             exit 0
             ;;
@@ -141,9 +144,11 @@ for arg in "$@"; do
                             git reset --hard FETCH_HEAD
                             git clean -dfx
                         else
+                            git reset --hard HEAD
                             binutils_fetch "pull" "${BINUTILS_VER}"
                         fi
                     fi
+                    sed -i '/^development=/s/true/false/' bfd/development.sh
                     cd "${BUILDDIR}"
                 fi
             else
@@ -153,6 +158,7 @@ for arg in "$@"; do
                 else
                     binutils_clone "${BINUTILS_VER}"
                 fi
+                sed -i '/^development=/s/true/false/' binutils-gdb/bfd/development.sh
             fi
             for arch in "${archs[@]}"; do
                 build_binutils "${arch}" "${BINUTILS_BUILD}" "${INSTALL_DIR}"
