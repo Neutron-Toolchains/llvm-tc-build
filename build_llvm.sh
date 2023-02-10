@@ -191,7 +191,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
 
             cd "${BOLT_PROFILES}"
             echo "Merging .fdata files..."
-            "${STAGE1}"/merge-fdata -q ./*.fdata 2> merge-fdata.log 1> combined.fdata
+            "${STAGE1}"/merge-fdata -q ./*.fdata 2>merge-fdata.log 1>combined.fdata
             rm -rf "${STAGE3}/${CLANG_SUFFIX:?}"
             "${STAGE1}"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
                 --data "${BOLT_PROFILES}/combined.fdata" \
@@ -203,7 +203,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
 
             cd "${BOLT_PROFILES_LLD}"
             echo "Merging .fdata files..."
-            "${STAGE1}"/merge-fdata -q ./*.fdata 2> merge-fdata.log 1> combined.fdata
+            "${STAGE1}"/merge-fdata -q ./*.fdata 2>merge-fdata.log 1>combined.fdata
             rm -rf "${STAGE3}/lld"
             "${STAGE1}"/llvm-bolt "${STAGE3}/lld.org" \
                 --data "${BOLT_PROFILES_LLD}/combined.fdata" \
