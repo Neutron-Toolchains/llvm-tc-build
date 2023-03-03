@@ -11,7 +11,7 @@ stages:
 
 build-edge-job:
     tags:
-        - llvm
+        - llvm-tc
     stage: build
     script:
         - df -h
