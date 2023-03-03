@@ -1,0 +1,22 @@
+image: ghcr.io/neutron-projects/docker-image:arch-neutron
+  
+before_script:
+    - git config --global user.email "dakkshesh5@gmail.com"
+    - git config --global user.name "Dakkshesh"
+    - git config --global http.postBuffer 524288000
+    - gh auth login --with-token <<< $GHUB_TOKEN
+
+stages:
+    - build
+
+build-edge-job:
+    tags:
+        - llvm
+    stage: build
+    script:
+        - df -h
+        - source utils.sh
+        - bash build_llvm.sh --shallow-clone --polly-opt --llvm-opt --bolt-opt --ci-run
+        - bash build_binutils.sh --targets=ARM,ARM64,X86
+        - bash post_build.sh
+        - bash push.sh

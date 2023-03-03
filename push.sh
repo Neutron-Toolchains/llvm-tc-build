@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source utils.sh
 # Script to push final built clang to my repo
 set -e
 
@@ -9,8 +10,8 @@ LLVM_DIR="${CURRENT_DIR}/llvm-project"
 NEUTRON_DIR="${CURRENT_DIR}/clang-build-catalogue"
 INSTALL_DIR="${CURRENT_DIR}/install"
 
-rel_tag="$(date "+%d%m%Y")"      # "{date}{month}{year}" format
-rel_date="$(date "+%-d %B, %Y")" # "Day Month, Year" format
+rel_tag="$(date "+%d%m%Y")"     # "{date}{month}{year}" format
+rel_date="$(date "+%-d %B %Y")" # "Day Month Year" format
 rel_file="${CURRENT_DIR}/neutron-clang-${rel_tag}.tar.zst"
 
 neutron_fetch() {
@@ -54,38 +55,39 @@ else
 fi
 
 cd "${INSTALL_DIR}"
-tar --zstd -cf "${rel_file}" .
+tar -I "zstd -T$(nproc --all) -19" -cf "${rel_file}" .
 rel_shasum=$(sha256sum "${rel_file}" | awk '{print $1}')
 rel_size=$(du -sh "${rel_file}" | awk '{print $1}')
 
 cd "${NEUTRON_DIR}"
 rm -rf latest.txt
 touch latest.txt
-echo -e "[tag]\n ${rel_tag}" >>latest.txt
+echo -e "[tag]\n${rel_tag}" >>latest.txt
 
 touch "${rel_tag}-info.txt"
 {
-    echo -e "[date]\n ${rel_date}\n"
-    echo -e "[clang-ver]\n ${clang_version}\n"
-    echo -e "[llvm-commit]\n ${llvm_commit_url}\n"
-    echo -e "[binutils-ver]\n ${binutils_ver}\n"
-    echo -e "[binutils-commit]\n ${binutils_commit_url}\n"
-    echo -e "[host-glibc]\n ${h_glibc}\n"
-    echo -e "[size]\n ${rel_size}\n"
-    echo -e "[shasum]\n ${rel_shasum}"
+    echo -e "[date]\n${rel_date}\n"
+    echo -e "[clang-ver]\n${clang_version}\n"
+    echo -e "[llvm-commit]\n${llvm_commit_url}\n"
+    echo -e "[binutils-ver]\n${binutils_ver}\n"
+    echo -e "[binutils-commit]\n${binutils_commit_url}\n"
+    echo -e "[host-glibc]\n${h_glibc}\n"
+    echo -e "[size]\n${rel_size}\n"
+    echo -e "[shasum]\n${rel_shasum}"
 } >>"${rel_tag}-info.txt"
 
 git add -A
 git commit -asm "catalogue: Add Neutron Clang build ${rel_tag}
 
-Build completed on: ${rel_date}
-LLVM commit: ${llvm_commit_url}
 Clang Version: ${clang_version}
 Binutils version: ${binutils_ver}
-Binutils at commit: ${binutils_commit_url}
-Builder at commit: https://github.com/Neutron-Toolchains/clang-build/commit/${builder_commit}
+
+LLVM commit: ${llvm_commit_url}
+Binutils commit: ${binutils_commit_url}
+Builder commit: https://github.com/Neutron-Toolchains/llvm-tc-build/commit/${builder_commit}
 Release: https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/tag/${rel_tag}"
 git gc
+git push "https://dakkshesh07:${GHUB_TOKEN}@github.com/Neutron-Toolchains/clang-build-catalogue.git" main -f
 
 if gh release view "${rel_tag}"; then
     echo "Uploading build archive to '${rel_tag}'..."
@@ -99,4 +101,27 @@ else
     }
 fi
 
-git push -f
+git push "https://dakkshesh07:${GHUB_TOKEN}@github.com/Neutron-Toolchains/clang-build-catalogue.git" main -f
+echo "push complete"
+
+end_msg="
+<b>Ayo! New Neutron Clang Update!</b>
+
+<b>Toolchain details</b>
+Clang version: <code>${clang_version}</code>
+Binutils version: <code>${binutils_ver}</code>
+LLVM commit: <a href='${llvm_commit_url}'> Here </a>
+Binutils commit: <a href='${binutils_commit_url}'> Here </a>
+Builder commit: <a href='https://github.com/Neutron-Toolchains/clang-build/commit/${builder_commit}'> Here </a>
+Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>
+Build Tag: <code>${rel_tag}</code>
+
+<b>Host system details</b>
+Distro: <a href='https://github.com/Neutron-Toolchains/docker-image'> ArchLinux(docker) </a>
+Clang version: <code>$(clang --version | head -n1 | grep -oE '[^ ]+$')</code>
+Glibc version: <code>$(ldd --version | head -n1 | grep -oE '[^ ]+$')</code>
+
+<b>Build Release:</b><a href='https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/tag/${rel_tag}'> github.com </a>
+"
+
+tgsend "${end_msg}"
