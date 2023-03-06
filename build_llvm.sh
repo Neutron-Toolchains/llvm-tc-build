@@ -258,6 +258,16 @@ mkdir -p "${LLVM_BUILD}"
 
 rm -rf "${KERNEL_DIR}" && get_linux_tarball "${LINUX_VER}"
 
+echo "Patching LLVM"
+# Patches
+if [[ -d "${BUILDDIR}/patches/llvm" ]]; then
+    cd "${LLVM_DIR}"
+    for pfile in "${BUILDDIR}/patches/llvm"/*; do
+        echo "Applying: ${pfile}"
+        patch -Np1 <"${pfile}" || echo "Skipping: ${pfile}"
+    done
+fi
+
 echo "Starting Stage 1 Build"
 cd "${LLVM_BUILD}"
 OUT="${LLVM_BUILD}/stage1"
@@ -332,7 +342,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_READELF="${LLVM_BIN_DIR}"/llvm-readelf \
     -DCMAKE_ADDR2LINE="${LLVM_BIN_DIR}"/llvm-addr2line \
     -DLLVM_PARALLEL_COMPILE_JOBS="$(getconf _NPROCESSORS_ONLN)" \
-    -DLLVM_PARALLEL_LINK_JOBS=$LLVM_LD_JOBS \
+    -DLLVM_PARALLEL_LINK_JOBS="$LLVM_LD_JOBS" \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
@@ -425,7 +435,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DLLVM_LINK_LLVM_DYLIB=ON \
     -DLLVM_VP_COUNTERS_PER_SITE=6 \
     -DLLVM_PARALLEL_COMPILE_JOBS="$(getconf _NPROCESSORS_ONLN)" \
-    -DLLVM_PARALLEL_LINK_JOBS=$LLVM_LD_JOBS \
+    -DLLVM_PARALLEL_LINK_JOBS="$LLVM_LD_JOBS" \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
@@ -593,7 +603,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DLLVM_TABLEGEN="${STAGE1}"/llvm-tblgen \
     -DLLVM_PROFDATA_FILE="${PROFILES}"/clang.profdata \
     -DLLVM_PARALLEL_COMPILE_JOBS="$(getconf _NPROCESSORS_ONLN)" \
-    -DLLVM_PARALLEL_LINK_JOBS=$LLVM_LD_JOBS \
+    -DLLVM_PARALLEL_LINK_JOBS="$LLVM_LD_JOBS" \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
