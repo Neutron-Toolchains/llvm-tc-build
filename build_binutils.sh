@@ -4,7 +4,7 @@ source utils.sh
 set -e
 
 # Binutils version
-BINUTILS_VER="2_40"
+BINUTILS_VER="2_41"
 
 # The main build function that builds GNU binutils.
 build_binutils() {
