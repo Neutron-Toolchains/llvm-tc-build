@@ -6,14 +6,40 @@ set -e
 # Binutils version
 BINUTILS_VER="2_41"
 
+for arg in "$@"; do
+    case "${arg}" in
+        "--use-jemalloc")
+            USE_JEMALLOC=1
+            ;;
+    esac
+done
+
+if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+    build_jemalloc() {
+        cd "${BUILDDIR}"
+        jemalloc_fetch_vars
+        if [[ ${NO_JEMALLOC} -eq 1 ]]; then
+            bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone
+        fi
+    }
+fi
+
 # The main build function that builds GNU binutils.
 build_binutils() {
+
+    if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+        echo "Building jemalloc libs if not built already"
+        build_jemalloc
+    fi
 
     export CC="gcc"
     export CXX="g++"
     export CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
     export CXXFLAGS="$CFLAGS"
     export LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
+    if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+        export LDFLAGS+=" ${JEMALLOC_FLAGS}"
+    fi
 
     case $1 in
         "X86")
