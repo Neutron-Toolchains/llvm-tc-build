@@ -91,14 +91,5 @@ for arg in "$@"; do
     esac
 done
 
-for arg in "$@"; do
-    case "${arg}" in
-        *)
-            echo "Invalid argument passed: ${arg}"
-            exit 1
-            ;;
-    esac
-done
-
 jemalloc_source_prep
 jemalloc_build
