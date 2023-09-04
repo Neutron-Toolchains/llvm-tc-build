@@ -5,7 +5,7 @@
 BUILDDIR="$(pwd)"
 export BUILDDIR
 
-# Variables and arrays for build_clang.sh
+# Variables and arrays
 export CLEAN_BUILD=1
 export POLLY_OPT=0
 export BOLT_OPT=0
@@ -18,6 +18,9 @@ export TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
 export SHALLOW_CLONE=0
 LLVM_LD_JOBS=$(getconf _NPROCESSORS_ONLN)
 export LLVM_LD_JOBS
+export USE_JEMALLOC=0
+
+export JEMALLOC_BUILD_DIR="${BUILDDIR}/jemalloc-build"
 
 export COMMON_OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3,--strip-debug"
 
@@ -136,6 +139,28 @@ binutils_fetch() {
         echo "binutils git $1: Failed" >&2
         exit 1
     fi
+}
+
+jemalloc_clone() {
+
+    if ! git clone "https://github.com/jemalloc/jemalloc.git" -b "$1" "$2"; then
+        echo "binutils git clone: Failed" >&2
+        exit 1
+    fi
+}
+
+jemalloc_fetch() {
+
+    if ! git "$1" "https://github.com/jemalloc/jemalloc.git" "$2" "$3"; then
+        echo "binutils git $1: Failed" >&2
+        exit 1
+    fi
+}
+
+jemalloc_var_set() {
+    export JEMALLOC_LIB_DIR="${JEMALLOC_BUILD_DIR}/bin/jemalloc-config --libdir"
+    export JEMALLOC_LIBS="${JEMALLOC_BUILD_DIR}/bin/jemalloc-config --libs"
+    export JEMALLOC_FLAGS="-L${JEMALLOC_LIB_DIR} -Wl,--push-state -Wl,-whole-archive -ljemalloc_static -Wl,--pop-state ${JEMALLOC_LIBS}"
 }
 
 get_linux_tarball() {

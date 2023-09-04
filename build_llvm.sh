@@ -35,6 +35,9 @@ for arg in "$@"; do
         "--use-mold")
             USE_MOLD=1
             ;;
+        "--use-jemalloc")
+            USE_JEMALLOC=1
+            ;;
         "--install-dir"*)
             FINAL_INSTALL_DIR="${arg#*--install-dir}"
             FINAL_INSTALL_DIR=${FINAL_INSTALL_DIR:1}
@@ -85,6 +88,14 @@ build_temp_binutils() {
     unset target
     rm -rf "${TEMP_BINTUILS_BUILD}"
 }
+
+if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+    build_jemalloc() {
+        if ! [[ -e "${JEMALLOC_LIB_DIR}/libjemalloc_static.a" ]]; then
+            bash build_jemalloc.sh --shallow-clone
+        fi
+    }
+fi
 
 # Function to BOLT clang and ld.lld
 if [[ ${BOLT_OPT} -eq 1 ]]; then
@@ -217,6 +228,11 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
     }
 fi
 
+if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+    echo "Building jemalloc libs if not built already"
+    build_jemalloc
+fi
+
 echo "Starting LLVM Build"
 # Where all relevant build-related repositories are cloned.
 if [[ -d ${LLVM_DIR} ]]; then
@@ -294,6 +310,12 @@ fi
 OPT_FLAGS="-march=native -mtune=native ${COMMON_OPT_FLAGS[*]}"
 OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -fuse-ld=${LINKER_DIR}/${LINKER}"
 
+if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
+else
+    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
+fi
+
 STAGE1_PROJS="clang;lld;compiler-rt"
 
 if [[ ${BOLT_OPT} -eq 1 ]]; then
@@ -346,7 +368,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
-    -DCMAKE_EXE_LINKER_FLAGS="${OPT_FLAGS_LD}" \
+    -DCMAKE_EXE_LINKER_FLAGS="${OPT_FLAGS_LD_EXE}" \
     -DCMAKE_MODULE_LINKER_FLAGS="${OPT_FLAGS_LD}" \
     -DCMAKE_SHARED_LINKER_FLAGS="${OPT_FLAGS_LD}" \
     "${LLVM_PROJECT}"
@@ -388,6 +410,12 @@ fi
 
 OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]}"
 OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -fuse-ld=${LINKER_DIR}/${LINKER}"
+
+if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
+else
+    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
+fi
 
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
@@ -439,7 +467,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
-    -DCMAKE_EXE_LINKER_FLAGS="${OPT_FLAGS_LD}" \
+    -DCMAKE_EXE_LINKER_FLAGS="${OPT_FLAGS_LD_EXE}" \
     -DCMAKE_MODULE_LINKER_FLAGS="${OPT_FLAGS_LD}" \
     -DCMAKE_SHARED_LINKER_FLAGS="${OPT_FLAGS_LD}" \
     -DCMAKE_INSTALL_PREFIX="${OUT}/install" \
@@ -551,6 +579,10 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} -Wl,-znow -Wl,--emit-relocs"
 else
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
+fi
+
+if [[ ${USE_JEMALLOC} -eq 1 ]]; then
+    OPT_FLAGS_LD_EXE+=" ${JEMALLOC_FLAGS}"
 fi
 
 cd "${LLVM_BUILD}"
