@@ -227,7 +227,8 @@ if [[ -d ${LLVM_DIR} ]]; then
         git reset --hard FETCH_HEAD
         git clean -dfx
     else
-        if $(git rev-parse --is-shallow-repository); then
+        is_shallow=$(git rev-parse --is-shallow-repository 2>/dev/null)
+        if [ "$is_shallow" = "true" ]; then
             llvm_fetch "fetch" "--depth=1"
             git reset --hard FETCH_HEAD
             git clean -dfx
