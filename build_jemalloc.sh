@@ -64,6 +64,7 @@ jemalloc_build() {
     export CFLAGS="-march=x86-64 -mtune=generic -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
     export CXXFLAGS="$CFLAGS"
     export LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
+    ./autogen.sh
     ./configure \
         --enable-autogen \
         --prefix="${JEMALLOC_BUILD_DIR}" \
