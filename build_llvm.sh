@@ -92,7 +92,7 @@ build_temp_binutils() {
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
     build_jemalloc() {
         if ! [[ -e "${JEMALLOC_LIB_DIR}/libjemalloc_static.a" ]]; then
-            bash build_jemalloc.sh --shallow-clone
+            bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone
         fi
     }
 fi
