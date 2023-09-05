@@ -58,6 +58,10 @@ jemalloc_source_prep() {
 
 jemalloc_build() {
     cd "${JEMALLOC_DIR}"
+    jemalloc_fetch_vars
+    if [[ ${NO_JEMALLOC} -eq 0 ]]; then
+        exit 0
+    fi
     rm -rf "${JEMALLOC_BUILD_DIR}" && mkdir -p "${JEMALLOC_BUILD_DIR}"
     export CC="gcc"
     export CXX="g++"
@@ -76,8 +80,8 @@ jemalloc_build() {
     make -j"$(getconf _NPROCESSORS_ONLN)"
     make install -j"$(getconf _NPROCESSORS_ONLN)"
 
-    # Now that build is done, set jemalloc specific vars
-    jemalloc_var_set
+    # Now that build is done, Get jemalloc vars
+    jemalloc_fetch_vars
 
     # Rename the static jemalloc lib to avoid conflicts with the .so one
     cp "${JEMALLOC_LIB_DIR}/libjemalloc.a" "${JEMALLOC_LIB_DIR}/libjemalloc_static.a"

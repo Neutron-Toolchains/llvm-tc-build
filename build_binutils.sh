@@ -16,7 +16,9 @@ done
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
     build_jemalloc() {
-        if ! [[ -e "${JEMALLOC_LIB_DIR}/libjemalloc_static.a" ]]; then
+        cd "${BUILDDIR}"
+        jemalloc_fetch_vars
+        if [[ ${NO_JEMALLOC} -eq 1 ]]; then
             bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone
         fi
     }
