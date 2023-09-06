@@ -82,9 +82,6 @@ jemalloc_build() {
 
     # Now that build is done, Get jemalloc vars
     jemalloc_fetch_vars
-
-    # Rename the static jemalloc lib to avoid conflicts with the .so one
-    cp "${JEMALLOC_LIB_DIR}/libjemalloc.a" "${JEMALLOC_LIB_DIR}/libjemalloc_static.a"
 }
 
 for arg in "$@"; do

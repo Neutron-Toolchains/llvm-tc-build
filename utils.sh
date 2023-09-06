@@ -161,7 +161,7 @@ jemalloc_fetch_vars() {
     if [[ -e "${JEMALLOC_BUILD_DIR}/bin/jemalloc-config" ]]; then
         export JEMALLOC_LIB_DIR="$(${JEMALLOC_BUILD_DIR}/bin/jemalloc-config --libdir)"
         export JEMALLOC_LIBS="$(${JEMALLOC_BUILD_DIR}/bin/jemalloc-config --libs)"
-        export JEMALLOC_FLAGS="-L${JEMALLOC_LIB_DIR} -Wl,--push-state -Wl,-whole-archive -ljemalloc_static -Wl,--pop-state ${JEMALLOC_LIBS}"
+        export JEMALLOC_FLAGS="-L${JEMALLOC_LIB_DIR} -Wl,--push-state -Wl,-whole-archive -ljemalloc_pic -Wl,--pop-state ${JEMALLOC_LIBS}"
         export NO_JEMALLOC=0
     else
         export NO_JEMALLOC=1
