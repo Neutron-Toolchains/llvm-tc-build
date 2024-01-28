@@ -11,6 +11,7 @@ export POLLY_OPT=0
 export BOLT_OPT=0
 export LLVM_OPT=0
 export USE_MOLD=0
+export AVX_OPT=0
 export FINAL_INSTALL_DIR="install"
 export CI=0
 export SHALLOW_CLONE=0

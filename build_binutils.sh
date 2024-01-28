@@ -15,6 +15,7 @@ for arg in "$@"; do
             ;;
         "--avx2")
             BINUTILS_AVX_FLAGS="${AVX_FLAGS}"
+            AVX_OPT=1
             ;;
     esac
 done
@@ -24,7 +25,11 @@ if [[ ${USE_JEMALLOC} -eq 1 ]]; then
         cd "${BUILDDIR}"
         jemalloc_fetch_vars
         if [[ ${NO_JEMALLOC} -eq 1 ]]; then
-            bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone
+            JEMALLOC_ARGS="--shallow-clone"
+            if [[ ${AVX_OPT} -eq 1 ]]; then
+                JEMALLOC_ARGS="--shallow-clone --avx2"
+            fi
+            bash "${BUILDDIR}/build_jemalloc.sh" "${JEMALLOC_ARGS}"
         fi
     }
 fi

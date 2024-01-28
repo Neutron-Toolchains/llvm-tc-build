@@ -49,7 +49,7 @@ for arg in "$@"; do
             LLVM_LD_JOBS="$(getconf _NPROCESSORS_ONLN)"
             ;;
         "--avx2")
-            LLVM_AVX_FLAGS="${AVX_FLAGS}"
+            AVX_OPT=1
             ;;
         *)
             echo "Invalid argument passed: ${arg}"
@@ -57,6 +57,11 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+# Set AVX2 optimization flags
+if [[ ${AVX_OPT} -eq 1 ]]; then
+    LLVM_AVX_FLAGS="${AVX_FLAGS}"
+fi
 
 # Clear some variables if unused
 clear_if_unused "POLLY_OPT" "POLLY_OPT_FLAGS"
@@ -75,7 +80,11 @@ if [[ ${USE_JEMALLOC} -eq 1 ]]; then
         cd "${BUILDDIR}"
         jemalloc_fetch_vars
         if [[ ${NO_JEMALLOC} -eq 1 ]]; then
-            bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone
+            if [[ ${AVX_OPT} -eq 1 ]]; then
+                bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone --avx2
+            else
+                bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone
+            fi
         fi
     }
 fi
