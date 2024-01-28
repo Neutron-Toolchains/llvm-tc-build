@@ -53,10 +53,6 @@ for arg in "$@"; do
     esac
 done
 
-# DO NOT CHANGE
-USE_SYSTEM_BINUTILS_64=1
-USE_SYSTEM_BINUTILS_32=1
-
 # Clear some variables if unused
 clear_if_unused "POLLY_OPT" "POLLY_OPT_FLAGS"
 clear_if_unused "LLVM_OPT" "LLVM_OPT_FLAGS"
@@ -68,26 +64,6 @@ if [[ ${CI} -eq 1 ]]; then
         <b>🔨 Neutron Clang Build Started</b>
 		Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>"
 fi
-
-# Function build temporary binutils for kernel profiling
-build_temp_binutils() {
-
-    currdir=$(pwd)
-    rm -rf "${TEMP_BINTUILS_BUILD}" && mkdir -p "${TEMP_BINTUILS_BUILD}"
-    if [[ $1 == "aarch64-linux-gnu" ]]; then
-        USE_SYSTEM_BINUTILS_64=0
-        target="ARM64"
-    else
-        USE_SYSTEM_BINUTILS_32=0
-        target="ARM"
-    fi
-    cd "${BUILDDIR}"
-    bash build_binutils.sh --targets="${target}" --install-dir="${TEMP_BINTUILS_INSTALL}" --build-dir="${TEMP_BINTUILS_BUILD}" --no-update
-    cd "${currdir}"
-    unset currdir
-    unset target
-    rm -rf "${TEMP_BINTUILS_BUILD}"
-}
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
     build_jemalloc() {
@@ -124,9 +100,8 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
             echo "Training arm64"
             cd "${KERNEL_DIR}"
             perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" \
-                "${KMAKEFLAGS[@]}" \
                 ARCH=arm64 \
-                CROSS_COMPILE=aarch64-linux-gnu- || (
+                "${KMAKEFLAGS[@]}" || (
                 echo "Kernel Build failed!"
                 exit 1
             )
@@ -522,28 +497,7 @@ rm -rf "${PROFILES:?}/"*
 echo "Stage 2: Build End"
 echo "Stage 2: PGO Train Start"
 
-rm -rf "${TEMP_BINTUILS_INSTALL}" && mkdir -p "${TEMP_BINTUILS_INSTALL}"
-command -v aarch64-linux-gnu-as &>/dev/null || build_temp_binutils aarch64-linux-gnu
-command -v arm-linux-gnueabi-as &>/dev/null || build_temp_binutils arm-linux-gnueabi
-
-if [[ ${USE_SYSTEM_BINUTILS_64} -eq 1 ]]; then
-    BINTUILS_64_BIN_DIR=$(readlink -f "$(which aarch64-linux-gnu-as)" | rev | cut -d'/' -f2- | rev)
-else
-    BINTUILS_64_BIN_DIR="${TEMP_BINTUILS_INSTALL}/bin"
-fi
-
-if [[ ${USE_SYSTEM_BINUTILS_32} -eq 1 ]]; then
-    BINTUILS_32_BIN_DIR=$(readlink -f "$(which arm-linux-gnueabi-as)" | rev | cut -d'/' -f2- | rev)
-else
-    BINTUILS_32_BIN_DIR="${TEMP_BINTUILS_INSTALL}/bin"
-fi
-
-if [[ ${USE_SYSTEM_BINUTILS_64} -eq 1 ]] && [[ ${USE_SYSTEM_BINUTILS_64} -eq 1 ]]; then
-    rm -rf "${TEMP_BINTUILS_INSTALL}"
-    rm -rf "${TEMP_BINTUILS_BUILD}"
-fi
-
-export PATH="${STAGE2}:${BINTUILS_64_BIN_DIR}:${BINTUILS_32_BIN_DIR}:${STOCK_PATH}"
+export PATH="${STAGE2}:${STOCK_PATH}"
 export LD_LIBRARY_PATH="${STAGE2}/../lib"
 
 # Train PGO
@@ -584,7 +538,7 @@ time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" "${KMAKEFLAG
 
 echo "Training arm64"
 time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm64 KCFLAGS="-Wl,-mllvm,-regalloc-enable-advisor=release" \
-    "${KMAKEFLAGS[@]}" CROSS_COMPILE=aarch64-linux-gnu- || exit ${?}
+    "${KMAKEFLAGS[@]}" || exit ${?}
 
 unset LLD_IN_TEST
 
@@ -592,9 +546,6 @@ unset LLD_IN_TEST
 cd "${PROFILES}"
 "${STAGE2}"/llvm-profdata merge -output=clang.profdata ./*
 
-if [[ ${BOLT_OPT} -eq 0 ]]; then
-    rm -rf "${TEMP_BINTUILS_INSTALL}"
-fi
 echo "Stage 2: PGO Training End"
 
 # Stage 3 (built with PGO profile data)
@@ -700,7 +651,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
     BOLT_PROFILES_LLD="${OUT}/bolt-prof-lld"
     rm -rf "${BOLT_PROFILES}" && rm -rf "${BOLT_PROFILES_LLD}"
     mkdir -p "${BOLT_PROFILES}" && mkdir -p "${BOLT_PROFILES_LLD}"
-    export PATH="${STAGE3}:${BINTUILS_64_BIN_DIR}:${BINTUILS_32_BIN_DIR}:${STOCK_PATH}"
+    export PATH="${STAGE3}:${STOCK_PATH}"
     export LD_LIBRARY_PATH="${STAGE3}/../lib"
     if [[ ${CI} -eq 1 ]]; then
         echo "Performing BOLT with instrumenting!"
@@ -723,7 +674,6 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
             )
         fi
     fi
-    rm -rf "${TEMP_BINTUILS_INSTALL}"
 fi
 
 echo "Moving stage 3 install dir to build dir"

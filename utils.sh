@@ -13,8 +13,6 @@ export LLVM_OPT=0
 export USE_MOLD=0
 export FINAL_INSTALL_DIR="install"
 export CI=0
-export TEMP_BINTUILS_BUILD="${BUILDDIR}/temp-binutils-build"
-export TEMP_BINTUILS_INSTALL="${BUILDDIR}/temp-binutils"
 export SHALLOW_CLONE=0
 LLVM_LD_JOBS=$(getconf _NPROCESSORS_ONLN)
 export LLVM_LD_JOBS
