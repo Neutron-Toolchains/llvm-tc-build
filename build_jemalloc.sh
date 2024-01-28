@@ -6,10 +6,15 @@ set -e
 JEMALLOC_DIR="${BUILDDIR}/jemalloc"
 JEMALLOC_VER="5.3.0"
 
+JEMALLOC_AVX_FLAGS="${NO_AVX_FLAGS}"
+
 for arg in "$@"; do
     case "${arg}" in
         "--no-update")
             NO_UPDATE=1
+            ;;
+        "--avx2")
+            JEMALLOC_AVX_FLAGS="${AVX_FLAGS}"
             ;;
     esac
 done
@@ -65,7 +70,7 @@ jemalloc_build() {
     rm -rf "${JEMALLOC_BUILD_DIR}" && mkdir -p "${JEMALLOC_BUILD_DIR}"
     export CC="gcc"
     export CXX="g++"
-    export CFLAGS="-march=x86-64 -mtune=generic -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
+    export CFLAGS="-march=x86-64 ${JEMALLOC_AVX_FLAGS} -O3 -ffp-contract=fast -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
     export CXXFLAGS="$CFLAGS"
     export LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
     ./autogen.sh

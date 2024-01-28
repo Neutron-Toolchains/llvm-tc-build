@@ -15,6 +15,8 @@ LLVM_DIR="${BUILDDIR}/llvm-project"
 LLVM_BUILD="${BUILDDIR}/llvm-build"
 LLVM_PROJECT="${LLVM_DIR}/llvm"
 
+LLVM_AVX_FLAGS="${NO_AVX_FLAGS}"
+
 for arg in "$@"; do
     case "${arg}" in
         "--incremental")
@@ -44,7 +46,10 @@ for arg in "$@"; do
             ;;
         "--ci-run")
             CI=1
-            LLVM_LD_JOBS=16
+            LLVM_LD_JOBS="$(getconf _NPROCESSORS_ONLN)"
+            ;;
+        "--avx2")
+            LLVM_AVX_FLAGS="${AVX_FLAGS}"
             ;;
         *)
             echo "Invalid argument passed: ${arg}"
@@ -306,7 +311,7 @@ else
     LINKER_DIR="${LLVM_BIN_DIR}"
 fi
 
-OPT_FLAGS="-march=native -mtune=native ${COMMON_OPT_FLAGS[*]}"
+OPT_FLAGS="-march=native -mtune=native ${BARE_AVX_FLAGS} ${COMMON_OPT_FLAGS[*]}"
 OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
@@ -411,7 +416,7 @@ else
     LINKER_DIR="${STAGE1}"
 fi
 
-OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
+OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
 OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -Wl,-mllvm,-regalloc-enable-advisor=release -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
@@ -554,10 +559,12 @@ echo "Stage 3 Build: Start"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
+OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
 fi
+
+OPT_FLAGS_LD+="-Wl,-mllvm -enable-ext-tsp-block-placement -Wl,-mllvm,-enable-split-machine-functions"
 
 if [[ ${LLVM_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${LLVM_OPT_FLAGS[*]} -mllvm -enable-chr"

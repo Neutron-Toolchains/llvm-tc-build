@@ -6,10 +6,15 @@ set -e
 # Binutils version
 BINUTILS_VER="2_41"
 
+BINUTILS_AVX_FLAGS="${NO_AVX_FLAGS}"
+
 for arg in "$@"; do
     case "${arg}" in
         "--use-jemalloc")
             USE_JEMALLOC=1
+            ;;
+        "--avx2")
+            BINUTILS_AVX_FLAGS="${AVX_FLAGS}"
             ;;
     esac
 done
@@ -34,7 +39,7 @@ build_binutils() {
 
     export CC="gcc"
     export CXX="g++"
-    export CFLAGS="-march=x86-64 -mtune=generic -flto=auto -flto-compression-level=10 -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
+    export CFLAGS="-march=x86-64 ${BINUTILS_AVX_FLAGS} -flto=auto -flto-compression-level=10 -ffp-contract=fast -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
     export CXXFLAGS="$CFLAGS"
     export LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
     if [[ ${USE_JEMALLOC} -eq 1 ]]; then

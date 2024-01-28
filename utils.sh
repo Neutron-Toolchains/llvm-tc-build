@@ -20,6 +20,10 @@ export USE_JEMALLOC=0
 
 export JEMALLOC_BUILD_DIR="${BUILDDIR}/jemalloc-build"
 
+export NO_AVX_FLAGS="-mtune=generic"
+export BARE_AVX_FLAGS="-mavx -mavx2 -mfma -msse3 -mssse3 -msse4.1 -msse4.2 -mf16c -mprefer-vector-width=128"
+export AVX_FLAGS="-mtune=haswell ${BARE_AVX_FLAGS}"
+
 export COMMON_OPT_FLAGS_LD="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3,--strip-debug"
 
 export COMMON_OPT_FLAGS=(
@@ -33,6 +37,7 @@ export COMMON_OPT_FLAGS=(
     "-fno-trapping-math"
     "-fomit-frame-pointer"
     "-mharden-sls=none"
+    "-ffp-contract=fast"
 )
 
 export POLLY_OPT_FLAGS=(
@@ -69,6 +74,7 @@ export LLVM_OPT_FLAGS=(
     "-mllvm -interleave-small-loop-scalar-reduction"
     "-mllvm -unroll-runtime-multi-exit"
     "-mllvm -hot-cold-split=true"
+    "-mllvm -split-threshold-for-reg-with-hint=0"
 )
 
 export BOLT_OPT_FLAGS=(
