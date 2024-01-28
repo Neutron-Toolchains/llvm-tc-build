@@ -96,7 +96,7 @@ if gh release view "${rel_tag}"; then
     }
 else
     echo "Creating release with tag '${rel_tag}'..."
-    gh release create "${rel_tag}" "${rel_file}" -t "${rel_date}" && {
+    gh release create "${rel_tag}" "${rel_file}" -t "${rel_date}" -n "" && {
         echo "Version ${rel_tag} released!"
     }
 fi
