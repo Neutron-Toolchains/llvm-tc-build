@@ -239,12 +239,6 @@ else
     fi
 fi
 
-if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
-    bash build_binutils.sh --sync-source-only --shallow-clone
-else
-    bash build_binutils.sh --sync-source-only
-fi
-
 if [[ ${CLEAN_BUILD} -eq 1 ]]; then
     rm -rf "${LLVM_BUILD}"
 fi
@@ -441,8 +435,6 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLVM_ENABLE_WARNINGS=OFF \
     -DLLVM_ENABLE_PROJECTS='clang;lld' \
-    -DLLVM_BINUTILS_INCDIR="${BUILDDIR}/binutils-gdb/include" \
-    -DLLVM_ENABLE_PLUGINS=ON \
     -DCLANG_ENABLE_ARCMT=OFF \
     -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
     -DCLANG_PLUGIN_SUPPORT=OFF \
@@ -592,8 +584,6 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCMAKE_BUILD_TYPE=Release \
     -DLLVM_ENABLE_WARNINGS=OFF \
     -DLLVM_ENABLE_PROJECTS='clang;lld;compiler-rt;polly;openmp' \
-    -DLLVM_BINUTILS_INCDIR="${BUILDDIR}/binutils-gdb/include" \
-    -DLLVM_ENABLE_PLUGINS=ON \
     -DCLANG_ENABLE_ARCMT=OFF \
     -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
     -DCLANG_PLUGIN_SUPPORT=OFF \
