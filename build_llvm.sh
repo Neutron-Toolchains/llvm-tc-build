@@ -277,17 +277,31 @@ mkdir -p "${LLVM_BUILD}"
 
 rm -rf "${KERNEL_DIR}" && get_linux_tarball "${LINUX_VER}"
 
-mkdir -p "${BUILDDIR}/mlgo-models/x86"
-cd "${BUILDDIR}/mlgo-models/x86"
+rm -rf "${BUILDDIR}/mlgo-models/"
+
+mkdir -p "${BUILDDIR}/mlgo-models/x86/regalloc"
+cd "${BUILDDIR}/mlgo-models/x86/regalloc"
 wget "https://github.com/google/ml-compiler-opt/releases/download/regalloc-evict-v1.0/regalloc-evict-e67430c-v1.0.tar.gz"
 tar -xf "regalloc-evict-e67430c-v1.0.tar.gz"
 rm -rf "regalloc-evict-e67430c-v1.0.tar.gz"
 
-mkdir -p "${BUILDDIR}/mlgo-models/arm64"
-cd "${BUILDDIR}/mlgo-models/arm64"
+mkdir -p "${BUILDDIR}/mlgo-models/x86/inline"
+cd "${BUILDDIR}/mlgo-models/x86/inline"
+wget "https://github.com/google/ml-compiler-opt/releases/download/inlining-Oz-v1.1/inlining-Oz-99f0063-v1.1.tar.gz"
+tar -xf "inlining-Oz-99f0063-v1.1.tar.gz"
+rm -rf "inlining-Oz-99f0063-v1.1.tar.gz"
+
+mkdir -p "${BUILDDIR}/mlgo-models/arm64/regalloc"
+cd "${BUILDDIR}/mlgo-models/arm64/regalloc"
 wget "https://github.com/dakkshesh07/mlgo-linux-kernel/releases/download/regalloc-evict-v6.6.8-arm64-1/regalloc-evict-linux-v6.6.8-arm64-1.tar.zst"
 tar -xf "regalloc-evict-linux-v6.6.8-arm64-1.tar.zst"
 rm -rf "regalloc-evict-linux-v6.6.8-arm64-1.tar.zst"
+
+mkdir -p "${BUILDDIR}/mlgo-models/arm64/inline/model"
+cd "${BUILDDIR}/mlgo-models/arm64/inline/model"
+wget "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/mlgo-models/arm64/inlining-Oz-chromium.tar.gz"
+tar -xf "inlining-Oz-chromium.tar.gz"
+rm -rf "inlining-Oz-chromium.tar.gz"
 
 
 echo "Patching LLVM"
@@ -367,7 +381,8 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DLLVM_ENABLE_WARNINGS=OFF \
     -DLLVM_ENABLE_LTO=Thin \
     -DTENSORFLOW_AOT_PATH=$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))") \
-    -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/x86/model" \
+    -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/x86/regalloc/model" \
+    -DLLVM_INLINER_MODEL_PATH="${BUILDDIR}/mlgo-models/x86/inline/model" \
     -DCMAKE_C_COMPILER_LAUNCHER=ccache \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DCMAKE_C_COMPILER="${LLVM_BIN_DIR}"/clang \
@@ -427,7 +442,7 @@ else
     LINKER_DIR="${STAGE1}"
 fi
 
-OPT_FLAGS="-march=x86-64 -mtune=generic -mllvm -regalloc-enable-advisor=release ${COMMON_OPT_FLAGS[*]}"
+OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]}"
 OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -Wl,-mllvm,-regalloc-enable-advisor=release -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
@@ -464,7 +479,8 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DLLVM_ENABLE_TERMINFO=OFF \
     -DLLVM_ENABLE_LTO=Thin \
     -DTENSORFLOW_AOT_PATH=$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))") \
-    -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/model" \
+    -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/regalloc/model" \
+    -DLLVM_INLINER_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/inline/model" \
     -DCMAKE_C_COMPILER="${STAGE1}"/clang \
     -DCMAKE_CXX_COMPILER="${STAGE1}"/clang++ \
     -DCMAKE_AR="${STAGE1}"/llvm-ar \
@@ -567,7 +583,7 @@ echo "Training x86"
 time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" "${KMAKEFLAGS[@]}" || exit ${?}
 
 echo "Training arm64"
-time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm64 KCFLAGS="-mllvm -regalloc-enable-advisor=release -Wl,-mllvm,-regalloc-enable-advisor=release" \
+time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm64 KCFLAGS="-Wl,-mllvm,-regalloc-enable-advisor=release" \
     "${KMAKEFLAGS[@]}" CROSS_COMPILE=aarch64-linux-gnu- || exit ${?}
 
 unset LLD_IN_TEST
@@ -587,7 +603,7 @@ echo "Stage 3 Build: Start"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-OPT_FLAGS="-march=x86-64 -mtune=generic -mllvm -regalloc-enable-advisor=release ${COMMON_OPT_FLAGS[*]}"
+OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]}"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
 fi
@@ -641,7 +657,8 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DLLVM_ENABLE_TERMINFO=OFF \
     -DLLVM_ENABLE_LTO=Thin \
     -DTENSORFLOW_AOT_PATH=$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))") \
-    -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/model" \
+    -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/regalloc/model" \
+    -DLLVM_INLINER_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/inline/model" \
     -DCMAKE_C_COMPILER="${STAGE1}"/clang \
     -DCMAKE_CXX_COMPILER="${STAGE1}"/clang++ \
     -DCMAKE_AR="${STAGE1}"/llvm-ar \

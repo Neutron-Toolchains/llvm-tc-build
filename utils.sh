@@ -70,6 +70,7 @@ export LLVM_OPT_FLAGS=(
     "-mllvm -extra-vectorizer-passes"
     "-mllvm -interleave-small-loop-scalar-reduction"
     "-mllvm -unroll-runtime-multi-exit"
+    "-mllvm -hot-cold-split=true"
 )
 
 export BOLT_OPT_FLAGS=(
