@@ -5,7 +5,6 @@ set -e
 
 # Specify some variables.
 CURRENT_DIR=$(pwd)
-BINUTILS_DIR="${CURRENT_DIR}/binutils-gdb"
 LLVM_DIR="${CURRENT_DIR}/llvm-project"
 NEUTRON_DIR="${CURRENT_DIR}/clang-build-catalogue"
 INSTALL_DIR="${CURRENT_DIR}/install"
@@ -20,12 +19,6 @@ neutron_fetch() {
         exit 1
     fi
 }
-
-# Binutils Info
-cd "${BINUTILS_DIR}"
-binutils_commit="$(git rev-parse HEAD)"
-binutils_commit_url="https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=${binutils_commit}"
-binutils_ver="$(git rev-parse --abbrev-ref HEAD | sed "s/-branch//g" | sed "s/binutils-//g" | sed "s/_/./g")"
 
 #LLVM Info
 cd "${LLVM_DIR}"
@@ -69,8 +62,6 @@ touch "${rel_tag}-info.txt"
     echo -e "[date]\n${rel_date}\n"
     echo -e "[clang-ver]\n${clang_version}\n"
     echo -e "[llvm-commit]\n${llvm_commit_url}\n"
-    echo -e "[binutils-ver]\n${binutils_ver}\n"
-    echo -e "[binutils-commit]\n${binutils_commit_url}\n"
     echo -e "[host-glibc]\n${h_glibc}\n"
     echo -e "[size]\n${rel_size}\n"
     echo -e "[shasum]\n${rel_shasum}"
@@ -80,10 +71,7 @@ git add -A
 git commit -asm "catalogue: Add Neutron Clang build ${rel_tag}
 
 Clang Version: ${clang_version}
-Binutils version: ${binutils_ver}
-
 LLVM commit: ${llvm_commit_url}
-Binutils commit: ${binutils_commit_url}
 Builder commit: https://github.com/Neutron-Toolchains/llvm-tc-build/commit/${builder_commit}
 Release: https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/tag/${rel_tag}"
 git gc
@@ -109,9 +97,7 @@ end_msg="
 
 <b>Toolchain details</b>
 Clang version: <code>${clang_version}</code>
-Binutils version: <code>${binutils_ver}</code>
 LLVM commit: <a href='${llvm_commit_url}'> Here </a>
-Binutils commit: <a href='${binutils_commit_url}'> Here </a>
 Builder commit: <a href='https://github.com/Neutron-Toolchains/clang-build/commit/${builder_commit}'> Here </a>
 Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>
 Build Tag: <code>${rel_tag}</code>
