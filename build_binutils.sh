@@ -44,9 +44,9 @@ build_binutils() {
 
     export CC="gcc"
     export CXX="g++"
-    export CFLAGS="-march=x86-64 ${BINUTILS_AVX_FLAGS} -flto=auto -flto-compression-level=10 -ffp-contract=fast -O3 -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
+    export CFLAGS="-march=x86-64 ${BINUTILS_AVX_FLAGS} -flto=auto -flto-compression-level=10 ${COMMON_GCC_CFLAGS[@]}"
     export CXXFLAGS="$CFLAGS"
-    export LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
+    export LDFLAGS="${COMMON_GCC_LDFLAGS}"
     if [[ ${USE_JEMALLOC} -eq 1 ]]; then
         export LDFLAGS+=" ${JEMALLOC_FLAGS}"
     fi

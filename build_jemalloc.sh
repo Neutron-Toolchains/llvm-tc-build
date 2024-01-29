@@ -70,9 +70,9 @@ jemalloc_build() {
     rm -rf "${JEMALLOC_BUILD_DIR}" && mkdir -p "${JEMALLOC_BUILD_DIR}"
     export CC="gcc"
     export CXX="g++"
-    export CFLAGS="-march=x86-64 ${JEMALLOC_AVX_FLAGS} -O3 -ffp-contract=fast -pipe -ffunction-sections -fdata-sections -fgraphite-identity -floop-nest-optimize -falign-functions=32 -fno-math-errno -fno-trapping-math -fomit-frame-pointer -mharden-sls=none"
+    export CFLAGS="-march=x86-64 ${JEMALLOC_AVX_FLAGS} ${COMMON_GCC_CFLAGS[@]}"
     export CXXFLAGS="$CFLAGS"
-    export LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
+    export LDFLAGS="${COMMON_GCC_LDFLAGS}"
     ./autogen.sh
     ./configure \
         --enable-autogen \
@@ -84,6 +84,7 @@ jemalloc_build() {
         --disable-debug
     make -j"$(getconf _NPROCESSORS_ONLN)"
     make install -j"$(getconf _NPROCESSORS_ONLN)"
+    unset CC CXX CFLAGS CXXFLAGS LDFLAGS
 
     # Now that build is done, Get jemalloc vars
     jemalloc_fetch_vars

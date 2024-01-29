@@ -15,10 +15,11 @@ export AVX_OPT=0
 export FINAL_INSTALL_DIR="install"
 export CI=0
 export SHALLOW_CLONE=0
+
 LLVM_LD_JOBS=$(getconf _NPROCESSORS_ONLN)
 export LLVM_LD_JOBS
-export USE_JEMALLOC=0
 
+export USE_JEMALLOC=0
 export JEMALLOC_BUILD_DIR="${BUILDDIR}/jemalloc-build"
 
 export NO_AVX_FLAGS="-mtune=generic"
@@ -72,7 +73,6 @@ export LLVM_OPT_FLAGS=(
     "-mllvm -enable-loopinterchange"
     "-mllvm -enable-unroll-and-jam"
     "-mllvm -extra-vectorizer-passes"
-    "-mllvm -interleave-small-loop-scalar-reduction"
     "-mllvm -unroll-runtime-multi-exit"
     "-mllvm -hot-cold-split=true"
     "-mllvm -split-threshold-for-reg-with-hint=0"
@@ -112,6 +112,23 @@ export COMMON_BINUTILS_FLAGS=(
     '--disable-werror'
     '--disable-compressed-debug-sections'
 )
+
+export COMMON_GCC_CFLAGS=(
+    '-O3'
+    '-ffp-contract=fast'
+    '-pipe'
+    '-ffunction-sections'
+    '-fdata-sections'
+    '-fgraphite-identity'
+    '-floop-nest-optimize'
+    '-falign-functions=32'
+    '-fno-math-errno'
+    '-fno-trapping-math'
+    '-fomit-frame-pointer'
+    '-mharden-sls=none'
+)
+
+export COMMON_GCC_LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
 
 export BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
 export INSTALL_DIR="${BUILDDIR}/install"
