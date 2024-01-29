@@ -100,7 +100,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
             echo "Training arm64"
             cd "${KERNEL_DIR}"
             perf record --output "${BOLT_PROFILES}"/perf.data --event cycles:u --branch-filter any,u -- make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" \
-                ARCH=arm64 \
+                ARCH=arm64 KCFLAGS="-mllvm -regalloc-enable-advisor=release" KLDFLAGS="-mllvm -regalloc-enable-advisor=release" \
                 "${KMAKEFLAGS[@]}" || (
                 echo "Kernel Build failed!"
                 exit 1
@@ -349,7 +349,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DLLVM_ENABLE_BACKTRACES=OFF \
     -DLLVM_ENABLE_WARNINGS=OFF \
     -DLLVM_ENABLE_LTO=Thin \
-    -DTENSORFLOW_AOT_PATH=$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))") \
+    -DTENSORFLOW_AOT_PATH="$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))")" \
     -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/x86/regalloc/model" \
     -DLLVM_INLINER_MODEL_PATH="${BUILDDIR}/mlgo-models/x86/inline/model" \
     -DCMAKE_C_COMPILER_LAUNCHER=ccache \
@@ -411,7 +411,7 @@ else
     LINKER_DIR="${STAGE1}"
 fi
 
-OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]}"
+OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
 OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -Wl,-mllvm,-regalloc-enable-advisor=release -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
@@ -445,7 +445,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DLLVM_INCLUDE_EXAMPLES=OFF \
     -DLLVM_ENABLE_TERMINFO=OFF \
     -DLLVM_ENABLE_LTO=Thin \
-    -DTENSORFLOW_AOT_PATH=$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))") \
+    -DTENSORFLOW_AOT_PATH="$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))")" \
     -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/regalloc/model" \
     -DLLVM_INLINER_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/inline/model" \
     -DCMAKE_C_COMPILER="${STAGE1}"/clang \
@@ -496,6 +496,14 @@ export LD_LIBRARY_PATH="${STAGE2}/../lib"
 cd "${KERNEL_DIR}"
 
 # Patches
+
+if [[ -d "${BUILDDIR}/patches/linux/common" ]]; then
+    for pfile in "${BUILDDIR}/patches/linux/common"/*; do
+        echo "Applying: ${pfile}"
+        patch -Np1 <"${pfile}" || echo "Skipping: ${pfile}"
+    done
+fi
+
 if [[ -d "${BUILDDIR}/patches/linux/${LINUX_VER}" ]]; then
     for pfile in "${BUILDDIR}/patches/linux/${LINUX_VER}"/*; do
         echo "Applying: ${pfile}"
@@ -529,7 +537,7 @@ echo "Training x86"
 time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" "${KMAKEFLAGS[@]}" || exit ${?}
 
 echo "Training arm64"
-time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm64 KCFLAGS="-Wl,-mllvm,-regalloc-enable-advisor=release" \
+time make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm64  KCFLAGS="-mllvm -regalloc-enable-advisor=release" KLDFLAGS="-mllvm -regalloc-enable-advisor=release" \
     "${KMAKEFLAGS[@]}" || exit ${?}
 
 unset LLD_IN_TEST
@@ -546,7 +554,7 @@ echo "Stage 3 Build: Start"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]}"
+OPT_FLAGS="-march=x86-64 -mtune=generic ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
 fi
@@ -597,7 +605,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCOMPILER_RT_BUILD_XRAY=OFF \
     -DLLVM_ENABLE_TERMINFO=OFF \
     -DLLVM_ENABLE_LTO=Thin \
-    -DTENSORFLOW_AOT_PATH=$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))") \
+    -DTENSORFLOW_AOT_PATH="$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))")" \
     -DLLVM_RAEVICT_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/regalloc/model" \
     -DLLVM_INLINER_MODEL_PATH="${BUILDDIR}/mlgo-models/arm64/inline/model" \
     -DCMAKE_C_COMPILER="${STAGE1}"/clang \
