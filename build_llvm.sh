@@ -52,7 +52,6 @@ for arg in "$@"; do
             ;;
         "--ci-run")
             CI=1
-            LLVM_LD_JOBS="$(getconf _NPROCESSORS_ONLN)"
             ;;
         "--avx2")
             AVX_OPT=1
@@ -70,9 +69,9 @@ if [[ ${AVX_OPT} -eq 1 ]]; then
 fi
 
 # Clear some variables if unused
-clear_if_unused "POLLY_OPT" "POLLY_OPT_FLAGS"
-clear_if_unused "LLVM_OPT" "LLVM_OPT_FLAGS"
-clear_if_unused "BOLT_OPT" "BOLT_OPT_FLAGS"
+clear_if_unused "POLLY_OPT" "POLLY_PASS_FLAGS"
+clear_if_unused "LLVM_OPT" "LLVM_PASS_FLAGS"
+clear_if_unused "BOLT_OPT" "BOLT_ARGS"
 
 # Send a notification if building on CI
 if [[ ${CI} -eq 1 ]]; then
@@ -146,7 +145,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
             "${STAGE1}"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}" \
                 -o "${STAGE3}/${CLANG_SUFFIX}.bolt" \
                 --data "${BOLT_PROFILES}/${CLANG_SUFFIX}.fdata" \
-                "${BOLT_OPT_FLAGS[@]}" || (
+                "${BOLT_ARGS[@]}" || (
                 echo "Could not optimize clang with BOLT"
                 exit 1
             )
@@ -204,7 +203,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
             "${STAGE1}"/llvm-bolt "${STAGE3}/${CLANG_SUFFIX}.org" \
                 --data "${BOLT_PROFILES}/combined.fdata" \
                 -o "${STAGE3}/${CLANG_SUFFIX}" \
-                "${BOLT_OPT_FLAGS[@]}" || (
+                "${BOLT_ARGS[@]}" || (
                 echo "Could not optimize clang with BOLT"
                 exit 1
             )
@@ -216,7 +215,7 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
             "${STAGE1}"/llvm-bolt "${STAGE3}/lld.org" \
                 --data "${BOLT_PROFILES_LLD}/combined.fdata" \
                 -o "${STAGE3}/lld" \
-                "${BOLT_OPT_FLAGS[@]}" || (
+                "${BOLT_ARGS[@]}" || (
                 echo "Could not optimize lld with BOLT"
                 exit 1
             )
@@ -326,8 +325,8 @@ else
     LINKER_DIR="${LLVM_BIN_DIR}"
 fi
 
-OPT_FLAGS="-march=native -mtune=native ${BARE_AVX_FLAGS} ${COMMON_OPT_FLAGS[*]}"
-OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -fuse-ld=${LINKER_DIR}/${LINKER}"
+OPT_FLAGS="-march=native -mtune=native ${BARE_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]}"
+OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS} -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
@@ -387,7 +386,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_READELF="${LLVM_BIN_DIR}"/llvm-readelf \
     -DCMAKE_ADDR2LINE="${LLVM_BIN_DIR}"/llvm-addr2line \
     -DLLVM_PARALLEL_COMPILE_JOBS="$(getconf _NPROCESSORS_ONLN)" \
-    -DLLVM_PARALLEL_LINK_JOBS="$LLVM_LD_JOBS" \
+    -DLLVM_PARALLEL_LINK_JOBS="$(getconf _NPROCESSORS_ONLN)" \
     -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
     -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
@@ -431,8 +430,8 @@ else
     LINKER_DIR="${STAGE1}"
 fi
 
-OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
-OPT_FLAGS_LD="${COMMON_OPT_FLAGS_LD} -Wl,-mllvm,-regalloc-enable-advisor=release -fuse-ld=${LINKER_DIR}/${LINKER}"
+OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -regalloc-enable-advisor=release"
+OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS} -Wl,-mllvm,-regalloc-enable-advisor=release -fuse-ld=${LINKER_DIR}/${LINKER}"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
@@ -441,11 +440,18 @@ else
 fi
 
 if [[ ${POLLY_OPT} -eq 1 ]]; then
-    OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
+    OPT_FLAGS="${OPT_FLAGS} -fopenmp ${POLLY_PASS_FLAGS[*]}"
+    for flag in "${POLLY_PASS_FLAGS[@]}"; do
+        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
+    done
 fi
 
 if [[ ${LLVM_OPT} -eq 1 ]]; then
-    OPT_FLAGS="${OPT_FLAGS} ${LLVM_OPT_FLAGS[*]}"
+    OPT_FLAGS="${OPT_FLAGS} ${LLVM_PASS_FLAGS[*]} -mllvm -split-threshold-for-reg-with-hint=0"
+    for flag in "${LLVM_PASS_FLAGS[@]}"; do
+        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
+    done
+    OPT_FLAGS_LD+=" -Wl,-mllvm,-split-threshold-for-reg-with-hint=0"
 fi
 
 cmake -G Ninja -Wno-dev --log-level=ERROR \
@@ -574,15 +580,19 @@ echo "Stage 3 Build: Start"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${COMMON_OPT_FLAGS[*]} -mllvm -regalloc-enable-advisor=release"
+OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -regalloc-enable-advisor=release"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
-    OPT_FLAGS="${OPT_FLAGS} ${POLLY_OPT_FLAGS[*]}"
+    OPT_FLAGS="${OPT_FLAGS} -fopenmp ${POLLY_PASS_FLAGS[*]}"
+    for flag in "${POLLY_PASS_FLAGS[@]}"; do
+        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
+    done
 fi
 
-OPT_FLAGS_LD+="-Wl,-mllvm -enable-ext-tsp-block-placement -Wl,-mllvm,-enable-split-machine-functions"
-
 if [[ ${LLVM_OPT} -eq 1 ]]; then
-    OPT_FLAGS="${OPT_FLAGS} ${LLVM_OPT_FLAGS[*]} -mllvm -enable-chr"
+    OPT_FLAGS="${OPT_FLAGS} ${LLVM_PASS_FLAGS[*]}"
+    for flag in "${LLVM_PASS_FLAGS[@]}"; do
+        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
+    done
 fi
 
 if [[ ${BOLT_OPT} -eq 1 ]]; then

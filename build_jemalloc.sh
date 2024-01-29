@@ -70,9 +70,9 @@ jemalloc_build() {
     rm -rf "${JEMALLOC_BUILD_DIR}" && mkdir -p "${JEMALLOC_BUILD_DIR}"
     export CC="gcc"
     export CXX="g++"
-    export CFLAGS="-march=x86-64 ${JEMALLOC_AVX_FLAGS} ${COMMON_GCC_CFLAGS[@]}"
+    export CFLAGS="-march=x86-64 ${JEMALLOC_AVX_FLAGS} ${GCC_OPT_CFLAGS[*]}"
     export CXXFLAGS="$CFLAGS"
-    export LDFLAGS="${COMMON_GCC_LDFLAGS}"
+    export LDFLAGS="${GCC_OPT_LDFLAGS}"
     ./autogen.sh
     ./configure \
         --enable-autogen \

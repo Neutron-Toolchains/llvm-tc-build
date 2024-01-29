@@ -44,7 +44,7 @@ build_binutils() {
 
     export CC="gcc"
     export CXX="g++"
-    export CFLAGS="-march=x86-64 ${BINUTILS_AVX_FLAGS} -flto=auto -flto-compression-level=10 ${COMMON_GCC_CFLAGS[@]}"
+    export CFLAGS="-march=x86-64 ${BINUTILS_AVX_FLAGS} -flto=auto -flto-compression-level=10 ${COMMON_GCC_CFLAGS[*]}"
     export CXXFLAGS="$CFLAGS"
     export LDFLAGS="${COMMON_GCC_LDFLAGS}"
     if [[ ${USE_JEMALLOC} -eq 1 ]]; then
@@ -61,7 +61,7 @@ build_binutils() {
                 --prefix="$3" \
                 --target=x86_64-pc-linux-gnu \
                 --with-pic \
-                "${COMMON_BINUTILS_FLAGS[@]}"
+                "${COMMON_BINUTILS_ARGS[@]}"
             ;;
         "ARM64")
             echo "Starting Binutils Build for arm64"
@@ -73,7 +73,7 @@ build_binutils() {
                 --target=aarch64-linux-gnu \
                 --with-gnu-as \
                 --with-gnu-ld \
-                "${COMMON_BINUTILS_FLAGS[@]}"
+                "${COMMON_BINUTILS_ARGS[@]}"
             ;;
         "ARM")
             echo "Starting Binutils Build for arm"
@@ -85,7 +85,7 @@ build_binutils() {
                 --target=arm-linux-gnueabi \
                 --with-gnu-as \
                 --with-gnu-ld \
-                "${COMMON_BINUTILS_FLAGS[@]}"
+                "${COMMON_BINUTILS_ARGS[@]}"
             ;;
         *)
             echo "Invalid target: $1. Supported targets are: ARM,ARM64,X86"
