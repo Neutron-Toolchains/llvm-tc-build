@@ -19,6 +19,12 @@ LLVM_AVX_FLAGS="${NO_AVX_FLAGS}"
 
 for arg in "$@"; do
     case "${arg}" in
+        "--all-opts")
+            POLLY_OPT=1
+            BOLT_OPT=1
+            LLVM_OPT=1
+            AVX_OPT=1
+            ;;
         "--incremental")
             CLEAN_BUILD=0
             ;;
