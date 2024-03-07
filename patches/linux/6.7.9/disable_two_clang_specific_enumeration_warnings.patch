@@ -1,0 +1,19 @@
+diff --git a/scripts/Makefile.extrawarn b/scripts/Makefile.extrawarn
+index a9e552a1e910..6053aa22b8f5 100644
+--- a/scripts/Makefile.extrawarn
++++ b/scripts/Makefile.extrawarn
+@@ -81,6 +81,14 @@ KBUILD_CFLAGS += $(call cc-option,-Werror=designated-init)
+
+ # Warn if there is an enum types mismatch
+ KBUILD_CFLAGS += $(call cc-option,-Wenum-conversion)
++ifdef CONFIG_CC_IS_CLANG
++# Clang enables these extra warnings under -Wenum-conversion but the kernel
++# performs arithmetic using or has conditionals returning enums of different
++# types in several different places, which is rarely a bug in the kernel's
++# case, so disable the warnings.
++KBUILD_CFLAGS += -Wno-enum-compare-conditional
++KBUILD_CFLAGS += -Wno-enum-enum-conversion
++endif
+
+ #
+ # W=1 - warnings which may be relevant and do not occur too often
