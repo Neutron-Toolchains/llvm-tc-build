@@ -136,7 +136,6 @@ export POLLY_PASS_FLAGS=(
     "-mllvm -polly-num-threads=0"
     "-mllvm -polly-omp-backend=LLVM"
     "-mllvm -polly-optimizer=isl"
-    "-mllvm -polly-parallel"
     "-mllvm -polly-postopts"
     "-mllvm -polly-reschedule"
     "-mllvm -polly-run-dce"
