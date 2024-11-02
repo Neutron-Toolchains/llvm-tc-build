@@ -441,17 +441,10 @@ fi
 
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} -fopenmp ${POLLY_PASS_FLAGS[*]}"
-    for flag in "${POLLY_PASS_FLAGS[@]}"; do
-        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
-    done
 fi
 
 if [[ ${LLVM_OPT} -eq 1 ]]; then
-    OPT_FLAGS="${OPT_FLAGS} ${LLVM_PASS_FLAGS[*]} -mllvm -split-threshold-for-reg-with-hint=0"
-    for flag in "${LLVM_PASS_FLAGS[@]}"; do
-        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
-    done
-    OPT_FLAGS_LD+=" -Wl,-mllvm,-split-threshold-for-reg-with-hint=0"
+    OPT_FLAGS="${OPT_FLAGS} ${LLVM_PASS_FLAGS[*]}"
 fi
 
 cmake -G Ninja -Wno-dev --log-level=ERROR \
@@ -504,7 +497,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     "${LLVM_PROJECT}"
 
 echo "Installing to ${OUT}/install"
-ninja install -j"$(getconf _NPROCESSORS_ONLN)" >/dev/null || (
+ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
     echo "Could not install project!"
     exit 1
 )
@@ -583,16 +576,10 @@ export LD_LIBRARY_PATH="${STAGE1}/../lib"
 OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -regalloc-enable-advisor=release"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} -fopenmp ${POLLY_PASS_FLAGS[*]}"
-    for flag in "${POLLY_PASS_FLAGS[@]}"; do
-        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
-    done
 fi
 
 if [[ ${LLVM_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} ${LLVM_PASS_FLAGS[*]}"
-    for flag in "${LLVM_PASS_FLAGS[@]}"; do
-        OPT_FLAGS_LD+=" -Wl,${flag// /,}"
-    done
 fi
 
 if [[ ${BOLT_OPT} -eq 1 ]]; then
