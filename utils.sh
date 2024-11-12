@@ -201,7 +201,6 @@ export CLANG_OPT_CFLAGS=(
     "-ffp-contract=fast"
     "-fexcess-precision=fast"
     "-fdata-sections"
-    "-fcx-limited-range"
     "-fcf-protection=none"
     "-falign-functions=32"
 )
