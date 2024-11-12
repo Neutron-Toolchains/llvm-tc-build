@@ -497,7 +497,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     "${LLVM_PROJECT}"
 
 echo "Installing to ${OUT}/install"
-ninja install -j"$(getconf _NPROCESSORS_ONLN)" >/dev/null || (
+ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
     echo "Could not install project!"
     exit 1
 )
