@@ -186,7 +186,6 @@ export BOLT_ARGS=(
 export CLANG_OPT_LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3,--strip-debug,--gc-sections"
 export CLANG_OPT_CFLAGS=(
     "-O3"
-    "-mtls-dialect=gnu2"
     "-mharden-sls=none"
     "-funroll-loops"
     "-fsplit-machine-functions"
