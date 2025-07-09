@@ -9,39 +9,6 @@ export BUILDDIR
 export SHALLOW_CLONE=0
 export AVX_OPT=0
 
-############
-# Jemalloc #
-############
-export USE_JEMALLOC=0
-export JEMALLOC_BUILD_DIR="${BUILDDIR}/jemalloc-build"
-
-jemalloc_fetch_vars() {
-    if [[ -e "${JEMALLOC_BUILD_DIR}/bin/jemalloc-config" ]]; then
-        export JEMALLOC_LIB_DIR="$(${JEMALLOC_BUILD_DIR}/bin/jemalloc-config --libdir)"
-        export JEMALLOC_LIBS="$(${JEMALLOC_BUILD_DIR}/bin/jemalloc-config --libs)"
-        export JEMALLOC_FLAGS="-L${JEMALLOC_LIB_DIR} -Wl,--push-state -Wl,-whole-archive -ljemalloc_pic -Wl,--pop-state ${JEMALLOC_LIBS}"
-        export NO_JEMALLOC=0
-    else
-        export NO_JEMALLOC=1
-    fi
-}
-
-jemalloc_clone() {
-
-    if ! git clone "https://github.com/jemalloc/jemalloc.git" -b "$1" "$2"; then
-        echo "jemalloc git clone: Failed" >&2
-        exit 1
-    fi
-}
-
-jemalloc_fetch() {
-
-    if ! git "$1" "https://github.com/jemalloc/jemalloc.git" "$2" "$3"; then
-        echo "jemalloc git $1: Failed" >&2
-        exit 1
-    fi
-}
-
 ################
 # LLVM Builder #
 ################

@@ -43,9 +43,6 @@ for arg in "$@"; do
         "--use-mold")
             USE_MOLD=1
             ;;
-        "--use-jemalloc")
-            USE_JEMALLOC=1
-            ;;
         "--install-dir"*)
             FINAL_INSTALL_DIR="${arg#*--install-dir}"
             FINAL_INSTALL_DIR=${FINAL_INSTALL_DIR:1}
@@ -78,20 +75,6 @@ if [[ ${CI} -eq 1 ]]; then
     tgsend "\
         <b>🔨 Neutron Clang Build Started</b>
 		Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>"
-fi
-
-if [[ ${USE_JEMALLOC} -eq 1 ]]; then
-    build_jemalloc() {
-        cd "${BUILDDIR}"
-        jemalloc_fetch_vars
-        if [[ ${NO_JEMALLOC} -eq 1 ]]; then
-            if [[ ${AVX_OPT} -eq 1 ]]; then
-                bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone --avx2
-            else
-                bash "${BUILDDIR}/build_jemalloc.sh" --shallow-clone
-            fi
-        fi
-    }
 fi
 
 # Function to BOLT clang and ld.lld
@@ -224,11 +207,6 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
     }
 fi
 
-if [[ ${USE_JEMALLOC} -eq 1 ]]; then
-    echo "Building jemalloc libs if not built already"
-    build_jemalloc
-fi
-
 echo "Starting LLVM Build"
 # Where all relevant build-related repositories are cloned.
 if [[ -d ${LLVM_DIR} ]]; then
@@ -325,11 +303,7 @@ fi
 OPT_FLAGS="-march=native -mtune=native ${CLANG_OPT_CFLAGS[*]}"
 OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS}"
 
-if [[ ${USE_JEMALLOC} -eq 1 ]]; then
-    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
-else
-    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
-fi
+OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
 
 STAGE1_PROJS="clang;lld;compiler-rt"
 
@@ -421,11 +395,7 @@ export LD_LIBRARY_PATH="${STAGE1}/../lib"
 OPT_FLAGS="${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -enable-ml-inliner=release -mllvm -regalloc-enable-advisor=release"
 OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS} -Wl,-mllvm,-enable-ml-inliner=release -Wl,-mllvm,-regalloc-enable-advisor=release"
 
-if [[ ${USE_JEMALLOC} -eq 1 ]]; then
-    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
-else
-    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
-fi
+OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
 
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} -fopenmp ${POLLY_PASS_FLAGS[*]}"
@@ -573,10 +543,6 @@ if [[ ${BOLT_OPT} -eq 1 ]]; then
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} -Wl,--emit-relocs -Wl,-z,pack-relative-relocs"
 else
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
-fi
-
-if [[ ${USE_JEMALLOC} -eq 1 ]]; then
-    OPT_FLAGS_LD_EXE+=" ${JEMALLOC_FLAGS}"
 fi
 
 cd "${LLVM_BUILD}"
