@@ -72,49 +72,6 @@ get_linux_tarball() {
     tar xf linux-"$1".tar.xz
 }
 
-####################
-# Binutils builder #
-####################
-export BINUTILS_DIR="${BUILDDIR}/binutils-gdb"
-export INSTALL_DIR="${BUILDDIR}/install"
-export BINUTILS_BUILD="${BUILDDIR}/binutils-build"
-export NO_UPDATE=0
-export COMMON_BINUTILS_ARGS=(
-    '--disable-docs'
-    '--disable-gdb'
-    '--disable-gdbserver'
-    '--disable-libdecnumber'
-    '--disable-readline'
-    '--disable-sim'
-    '--enable-deterministic-archives'
-    '--enable-gold'
-    '--enable-ld=default'
-    '--enable-lto'
-    '--enable-new-dtags'
-    '--enable-plugins'
-    '--enable-threads'
-    '--quiet'
-    '--with-pkgversion=Neutron Binutils'
-    '--disable-werror'
-    '--disable-compressed-debug-sections'
-)
-
-binutils_clone() {
-
-    if ! git clone "https://sourceware.org/git/binutils-gdb.git" -b "binutils-$1-branch" "$2"; then
-        echo "binutils git clone: Failed" >&2
-        exit 1
-    fi
-}
-
-binutils_fetch() {
-
-    if ! git "$1" "https://sourceware.org/git/binutils-gdb.git" "binutils-$2-branch" "$3"; then
-        echo "binutils git $1: Failed" >&2
-        exit 1
-    fi
-}
-
 ######################
 # Optimization flags #
 ######################
