@@ -317,16 +317,13 @@ cd "${OUT}"
 
 LLVM_BIN_DIR=$(readlink -f "$(which clang)" | rev | cut -d'/' -f2- | rev)
 
+LINKER="lld"
 if [[ ${USE_MOLD} -eq 1 ]]; then
     LINKER="mold"
-    LINKER_DIR=$(readlink -f "$(which mold)" | rev | cut -d'/' -f2- | rev)
-else
-    LINKER="ld.lld"
-    LINKER_DIR="${LLVM_BIN_DIR}"
 fi
 
-OPT_FLAGS="-march=native -mtune=native ${BARE_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]}"
-OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS} -fuse-ld=${LINKER_DIR}/${LINKER}"
+OPT_FLAGS="-march=native -mtune=native ${CLANG_OPT_CFLAGS[*]}"
+OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS}"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
@@ -378,8 +375,7 @@ cmake -G Ninja -Wno-dev --log-level=NOTICE \
     -DCMAKE_AR="${LLVM_BIN_DIR}"/llvm-ar \
     -DCMAKE_NM="${LLVM_BIN_DIR}"/llvm-nm \
     -DCMAKE_STRIP="${LLVM_BIN_DIR}"/llvm-strip \
-    -DLLVM_USE_LINKER="${LINKER_DIR}/${LINKER}" \
-    -DCMAKE_LINKER="${LINKER_DIR}/${LINKER}" \
+    -DLLVM_USE_LINKER="${LINKER}" \
     -DCMAKE_OBJCOPY="${LLVM_BIN_DIR}"/llvm-objcopy \
     -DCMAKE_OBJDUMP="${LLVM_BIN_DIR}"/llvm-objdump \
     -DCMAKE_RANLIB="${LLVM_BIN_DIR}"/llvm-ranlib \
@@ -422,16 +418,8 @@ MODDED_PATH="${STAGE1}:${PATH}"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-if [[ ${USE_MOLD} -eq 1 ]]; then
-    LINKER="mold"
-    LINKER_DIR=$(readlink -f "$(which mold)" | rev | cut -d'/' -f2- | rev)
-else
-    LINKER="ld.lld"
-    LINKER_DIR="${STAGE1}"
-fi
-
-OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -regalloc-enable-advisor=release"
-OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS} -Wl,-mllvm,-regalloc-enable-advisor=release -fuse-ld=${LINKER_DIR}/${LINKER}"
+OPT_FLAGS="${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -enable-ml-inliner=release -mllvm -regalloc-enable-advisor=release"
+OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS} -Wl,-mllvm,-enable-ml-inliner=release -Wl,-mllvm,-regalloc-enable-advisor=release"
 
 if [[ ${USE_JEMALLOC} -eq 1 ]]; then
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} ${JEMALLOC_FLAGS}"
@@ -472,8 +460,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCMAKE_AR="${STAGE1}"/llvm-ar \
     -DCMAKE_NM="${STAGE1}"/llvm-nm \
     -DCMAKE_STRIP="${STAGE1}"/llvm-strip \
-    -DLLVM_USE_LINKER="${LINKER_DIR}/${LINKER}" \
-    -DCMAKE_LINKER="${LINKER_DIR}/${LINKER}" \
+    -DLLVM_USE_LINKER="${LINKER}" \
     -DCMAKE_OBJCOPY="${STAGE1}"/llvm-objcopy \
     -DCMAKE_OBJDUMP="${STAGE1}"/llvm-objdump \
     -DCMAKE_RANLIB="${STAGE1}"/llvm-ranlib \
@@ -573,7 +560,7 @@ echo "Stage 3 Build: Start"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${STAGE1}/../lib"
 
-OPT_FLAGS="-march=x86-64 ${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -regalloc-enable-advisor=release"
+OPT_FLAGS="${LLVM_AVX_FLAGS} ${CLANG_OPT_CFLAGS[*]} -mllvm -enable-ml-inliner=release -mllvm -regalloc-enable-advisor=release -fsplit-machine-functions"
 if [[ ${POLLY_OPT} -eq 1 ]]; then
     OPT_FLAGS="${OPT_FLAGS} -fopenmp ${POLLY_PASS_FLAGS[*]}"
 fi
@@ -583,7 +570,7 @@ if [[ ${LLVM_OPT} -eq 1 ]]; then
 fi
 
 if [[ ${BOLT_OPT} -eq 1 ]]; then
-    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} -Wl,-znow -Wl,--emit-relocs"
+    OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD} -Wl,--emit-relocs -Wl,-z,pack-relative-relocs"
 else
     OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
 fi
@@ -632,8 +619,7 @@ cmake -G Ninja -Wno-dev --log-level=ERROR \
     -DCMAKE_AR="${STAGE1}"/llvm-ar \
     -DCMAKE_NM="${STAGE1}"/llvm-nm \
     -DCMAKE_STRIP="${STAGE1}"/llvm-strip \
-    -DLLVM_USE_LINKER="${LINKER_DIR}/${LINKER}" \
-    -DCMAKE_LINKER="${LINKER_DIR}/${LINKER}" \
+    -DLLVM_USE_LINKER="${LINKER}" \
     -DCMAKE_OBJCOPY="${STAGE1}"/llvm-objcopy \
     -DCMAKE_OBJDUMP="${STAGE1}"/llvm-objdump \
     -DCMAKE_RANLIB="${STAGE1}"/llvm-ranlib \

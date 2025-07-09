@@ -120,9 +120,8 @@ binutils_fetch() {
 ######################
 
 # AVX2 OPT
-export NO_AVX_FLAGS="-mtune=generic"
-export BARE_AVX_FLAGS="-mavx -mavx2 -mfma -msse3 -mssse3 -msse4.1 -msse4.2 -mf16c -mprefer-vector-width=256"
-export AVX_FLAGS="-mtune=haswell ${BARE_AVX_FLAGS}"
+export NO_AVX_FLAGS="-march=x86-64 -mtune=generic"
+export AVX_FLAGS="-march=x86-64-v3 -mprefer-vector-width=256"
 
 # Polly
 export POLLY_PASS_FLAGS=(
@@ -185,16 +184,18 @@ export BOLT_ARGS=(
 # Clang
 export CLANG_OPT_LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--lto-O3,--strip-debug,--gc-sections"
 export CLANG_OPT_CFLAGS=(
+    "-pipe"
     "-O3"
-    "-mharden-sls=none"
+    "-integrated-as"
+    "-fwhole-program-vtables"
     "-funroll-loops"
-    "-fsplit-machine-functions"
+    "-fstack-arrays"
     "-fsplit-lto-unit"
     "-freciprocal-math"
     "-fomit-frame-pointer"
-    "-fno-unique-section-names"
     "-fno-trapping-math"
     "-fno-semantic-interposition"
+    "-fno-plt"
     "-fno-math-errno"
     "-flto=thin"
     "-ffunction-sections"
@@ -203,23 +204,6 @@ export CLANG_OPT_CFLAGS=(
     "-fdata-sections"
     "-fcf-protection=none"
     "-falign-functions=32"
-)
-
-# GCC
-export GCC_OPT_LDFLAGS="-Wl,-O3,--sort-common,--as-needed,-z,now,--strip-debug"
-export GCC_OPT_CFLAGS=(
-    '-O3'
-    '-ffp-contract=fast'
-    '-pipe'
-    '-ffunction-sections'
-    '-fdata-sections'
-    '-fgraphite-identity'
-    '-floop-nest-optimize'
-    '-falign-functions=32'
-    '-fno-math-errno'
-    '-fno-trapping-math'
-    '-fomit-frame-pointer'
-    '-mharden-sls=none'
 )
 
 ########
