@@ -33,44 +33,42 @@ fi
 
 echo "Starting LLVM Build"
 # Where all relevant build-related repositories are cloned.
-llvm_source_prep() {
-    if [[ -d ${LLVM_SRC_DIR} ]]; then
-        echo "Existing llvm source found. Fetching new changes"
-        cd "${LLVM_SRC_DIR}"
-        if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
+if [[ -d ${LLVM_SRC_DIR} ]]; then
+    echo "Existing llvm source found. Fetching new changes"
+    cd "${LLVM_SRC_DIR}"
+    if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
+        llvm_fetch "fetch" "--depth=1"
+        git reset --hard FETCH_HEAD
+        git clean -dfx
+    else
+        is_shallow=$(git rev-parse --is-shallow-repository 2>/dev/null)
+        if [ "$is_shallow" = "true" ]; then
             llvm_fetch "fetch" "--depth=1"
             git reset --hard FETCH_HEAD
             git clean -dfx
         else
-            is_shallow=$(git rev-parse --is-shallow-repository 2>/dev/null)
-            if [ "$is_shallow" = "true" ]; then
-                llvm_fetch "fetch" "--depth=1"
-                git reset --hard FETCH_HEAD
-                git clean -dfx
-            else
-                llvm_fetch "pull"
-            fi
+            llvm_fetch "pull"
         fi
-        cd "${WORK_DIR}"
+    fi
+    cd "${WORK_DIR}"
+else
+    echo "Cloning llvm project repo"
+    if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
+        llvm_fetch "clone" "--depth=1"
     else
-        echo "Cloning llvm project repo"
-        if [[ ${SHALLOW_CLONE} -eq 1 ]]; then
-            llvm_fetch "clone" "--depth=1"
-        else
-            llvm_fetch "clone"
-        fi
+        llvm_fetch "clone"
     fi
+fi
 
-    echo "Patching LLVM"
-    # Patches
-    if [[ -d "${WORK_DIR}/patches/llvm" ]]; then
-        cd "${LLVM_SRC_DIR}"
-        for pfile in "${WORK_DIR}/patches/llvm"/*; do
-            echo "Applying: ${pfile}"
-            patch -Np1 <"${pfile}" || echo "Skipping: ${pfile}"
-        done
-    fi
-}
+echo "Patching LLVM"
+# Patches
+if [[ -d "${WORK_DIR}/patches/llvm" ]]; then
+    cd "${LLVM_SRC_DIR}"
+    for pfile in "${WORK_DIR}/patches/llvm"/*; do
+        echo "Applying: ${pfile}"
+        patch -Np1 <"${pfile}" || echo "Skipping: ${pfile}"
+    done
+fi
 
 mkdir -p "${MLGO_DIR}"
 
