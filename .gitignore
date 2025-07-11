@@ -1,11 +1,7 @@
 # Ignore stuffs used for build
-linux-*.tar.xz
-linux-*/
-llvm-build/
-llvm-project/
+build/*
+sources/*
 neutron-clang/
-binutils-build/
-binutils-gdb/
 
 # Ignore final install dir as well
 install/
