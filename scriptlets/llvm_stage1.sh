@@ -49,9 +49,9 @@ if [[ ${POLLY_OPT} -eq 1 ]]; then
     STAGE1_PROJS+=";polly"
 fi
 
-export TF_CPP_MIN_LOG_LEVEL=2
 rm -rf "${LLVM_STAGE1_BUILD_DIR}"
 mkdir -p "${LLVM_STAGE1_BUILD_DIR}" && cd "${LLVM_STAGE1_BUILD_DIR}"
+export TF_CPP_MIN_LOG_LEVEL=2
 cmake -G Ninja -Wno-dev \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DLLVM_ENABLE_PROJECTS="${STAGE1_PROJS}" \

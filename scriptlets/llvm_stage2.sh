@@ -56,6 +56,7 @@ OPT_FLAGS+=" -fprofile-generate -fprofile-update=atomic -mllvm -vp-counters-per-
 
 rm -rf "${LLVM_STAGE2_BUILD_DIR}"
 mkdir -p "${LLVM_STAGE2_BUILD_DIR}" && cd "${LLVM_STAGE2_BUILD_DIR}"
+export TF_CPP_MIN_LOG_LEVEL=2
 cmake -G Ninja -Wno-dev \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DCMAKE_INSTALL_PREFIX="${LLVM_STAGE2_INSTALL_DIR}" \
