@@ -19,7 +19,8 @@
 ####################
 # Global variables #
 ####################
-export WORK_DIR="$(pwd)"
+WORK_DIR="$(pwd)"
+export WORK_DIR
 export SRC_DIR="${WORK_DIR}/sources"
 export BUILD_DIR="${WORK_DIR}/build"
 export SHALLOW_CLONE=0
@@ -153,7 +154,7 @@ git_get() {
     if [[ -d $dir ]]; then
         echo "Directory $dir already exists, skipping git clone."
         echo "Checking for updates..."
-        cd "$dir"
+        cd "$dir" || exit 1
         git pull origin "$branch"
     else
         echo "Cloning $repo into $dir"
@@ -173,7 +174,7 @@ download_and_extract() {
     else
         echo "Downloading and extracting $archive_name into $target_dir"
         mkdir -p "$target_dir"
-        cd "$target_dir"
+        cd "$target_dir" || exit 1
         wget -q "$url"
         tar -xf "$archive_name"
         rm -f "$archive_name"

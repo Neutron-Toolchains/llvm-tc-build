@@ -95,7 +95,7 @@ if [[ ${CLEAN_BUILD} -eq 1 ]]; then
 fi
 mkdir -p "${BUILD_DIR}"
 
-cd ${WORK_DIR}
+cd "${WORK_DIR}"
 bash "${WORK_DIR}"/scriptlets/llvm_stage1.sh "$@"
 
 bash "${WORK_DIR}"/scriptlets/llvm_deps.sh "$@"

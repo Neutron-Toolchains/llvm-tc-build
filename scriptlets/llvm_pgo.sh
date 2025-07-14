@@ -19,11 +19,11 @@ check_if_exists "${LLVM_STAGE2_BIN_DIR}"
 
 LINUX_VER=$(curl -sL "https://www.kernel.org" | grep -A 1 "latest_link" | tail -n +2 | sed 's|.*">||' | sed 's|</a>||')
 
-cd "${SRC_DIR}"
+cd "${SRC_DIR}" || exit 1
 get_linux_tarball "${LINUX_VER}"
 KERNEL_SRC_DIR="${SRC_DIR}/linux-${LINUX_VER}"
 
-mkdir -p "$PROFILE_DIR" && rm -rf "${PROFILE_DIR}/"*
+mkdir -p "$PROFILE_DIR" && rm -rf "${PROFILE_DIR:?}/"*
 
 MAX_SIZE=$((2 * 1024 * 1024 * 1024)) # 2 GiB
 SLEEP_INTERVAL=60                    # seconds
@@ -82,7 +82,7 @@ echo "Stage 2: PGO Train Start"
 export PATH="${LLVM_STAGE2_BIN_DIR}:${STOCK_PATH}"
 export LD_LIBRARY_PATH="${LLVM_STAGE2_BIN_DIR}/../lib"
 
-cd "${KERNEL_SRC_DIR}"
+cd "${KERNEL_SRC_DIR}" || exit 1
 
 # Patches
 if [[ -d "${WORK_DIR}/patches/linux/common" ]]; then

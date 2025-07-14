@@ -64,7 +64,7 @@ get_linux_tarball() {
     tar xf linux-"$1".tar.xz
 }
 
-LLVM_ARCH="${ARCH_GENERIC}"
+export LLVM_ARCH="${ARCH_GENERIC}"
 
 parse_llvm_args() {
     for arg in "$@"; do
@@ -104,7 +104,7 @@ parse_llvm_args() {
                 ;;
             "--avx2")
                 AVX_OPT=1
-                LLVM_ARCH="${ARCH_AVX2}"
+                export LLVM_ARCH="${ARCH_AVX2}"
                 ;;
             *)
                 echo "Invalid argument passed: ${arg}"
