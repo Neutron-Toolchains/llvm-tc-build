@@ -105,3 +105,5 @@ bash "${WORK_DIR}"/scriptlets/llvm_stage2.sh "$@"
 bash "${WORK_DIR}"/scriptlets/llvm_pgo.sh "$@"
 
 bash "${WORK_DIR}"/scriptlets/llvm_stage3.sh "$@"
+
+bash "${WORK_DIR}"/scriptlets/llvm_bolt.sh "$@"

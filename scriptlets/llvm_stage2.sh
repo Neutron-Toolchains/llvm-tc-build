@@ -20,12 +20,13 @@ source "$(pwd)"/scriptlets/_llvm.sh
 
 parse_llvm_args "$@"
 
-echo "Verifying dependencies"
+echo "=> Verifying dependencies"
 check_if_exists "${LLVM_SRC_DIR}"
 check_if_exists "${LLVM_STAGE1_INSTALL_DIR}"
 check_if_exists "${MLGO_DIR}/arm64"
+LLVM_STAGE1_BIN_DIR="${LLVM_STAGE1_INSTALL_DIR}/bin"
 
-echo "Starting Stage 2 Build"
+echo "=> Starting Stage 2 Build"
 MODDED_PATH="${LLVM_STAGE1_BIN_DIR}:${STOCK_PATH}"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${LLVM_STAGE1_INSTALL_DIR}/lib"
@@ -111,14 +112,16 @@ cmake -G Ninja -Wno-dev \
     "${LLVM_SRC_DIR}"/llvm
 
 ninja distribution -j"$(getconf _NPROCESSORS_ONLN)" || (
-    echo "Could not build project!"
+    echo "=> Could not build project!"
     exit 1
 )
 
 if [[ ${CI} -eq 1 ]]; then
-    echo "Installing to ${LLVM_STAGE2_INSTALL_DIR}"
+    echo "=> Installing to ${LLVM_STAGE2_INSTALL_DIR}"
     ninja install-distribution -j"$(getconf _NPROCESSORS_ONLN)" || (
-        echo "Could not install project!"
+        echo "=> Could not install project!"
         exit 1
     )
 fi
+
+echo "=> Stage 2 Build complete"

@@ -14,6 +14,8 @@
 # GNU General Public License for more details.
 #
 
+set -eou pipefail
+
 source "$(pwd)"/scriptlets/utils.sh
 
 ################
@@ -28,13 +30,13 @@ export LLVM_SRC_DIR="${SRC_DIR}/llvm-project"
 
 export LLVM_STAGE1_BUILD_DIR="${BUILD_DIR}/stage1"
 export LLVM_STAGE1_INSTALL_DIR="${LLVM_STAGE1_BUILD_DIR}"
-export LLVM_STAGE1_BIN_DIR="${LLVM_STAGE1_INSTALL_DIR}/bin"
 
 export LLVM_STAGE2_BUILD_DIR="${BUILD_DIR}/stage2"
 export LLVM_STAGE2_INSTALL_DIR="${LLVM_STAGE2_BUILD_DIR}"
-export LLVM_STAGE2_BIN_DIR="${LLVM_STAGE2_INSTALL_DIR}/bin"
 
 export LLVM_STAGE3_BUILD_DIR="${BUILD_DIR}/stage3"
+export LLVM_STAGE3_INSTALL_DIR="${LLVM_STAGE3_BUILD_DIR}"
+
 export LLVM_INSTALL_DIR="${WORK_DIR}/install"
 
 export PROFILE_DIR="${LLVM_STAGE2_BUILD_DIR}/profiles"
@@ -101,6 +103,7 @@ parse_llvm_args() {
                 CI=1
                 LLVM_STAGE1_INSTALL_DIR="${LLVM_STAGE1_BUILD_DIR}/install"
                 LLVM_STAGE2_INSTALL_DIR="${LLVM_STAGE2_BUILD_DIR}/install"
+                LLVM_STAGE3_INSTALL_DIR="${LLVM_STAGE3_BUILD_DIR}/install"
                 ;;
             "--avx2")
                 AVX_OPT=1

@@ -20,8 +20,9 @@ source "$(pwd)"/scriptlets/_llvm.sh
 
 parse_llvm_args "$@"
 
-echo "Verifying dependencies"
+echo "=> Verifying dependencies"
 check_if_exists "${LLVM_STAGE1_INSTALL_DIR}"
+LLVM_STAGE1_BIN_DIR="${LLVM_STAGE1_INSTALL_DIR}/bin"
 
 ZLIB_VERSION="$(curl -s https://api.github.com/repos/zlib-ng/zlib-ng/releases/latest | jq -r .tag_name)"
 ZSTD_VERSION="$(curl -s https://api.github.com/repos/facebook/zstd/releases/latest | jq -r .tag_name)"
@@ -82,7 +83,7 @@ cmake -G Ninja -Wno-dev --log-level=WARNING \
     "${SRC_DIR}/mimalloc"
 
 ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
-    echo "Could not build mimalloc!"
+    echo "=> Could not build mimalloc!"
     exit 1
 )
 
@@ -99,7 +100,7 @@ cmake -G Ninja -Wno-dev --log-level=WARNING \
     "${SRC_DIR}/zlib"
 
 ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
-    echo "Could not build zlib-ng!"
+    echo "=> Could not build zlib-ng!"
     exit 1
 )
 
@@ -117,6 +118,6 @@ cmake -G Ninja -Wno-dev --log-level=WARNING \
     "${SRC_DIR}/zstd/build/cmake"
 
 ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
-    echo "Could not build zstd!"
+    echo "=> Could not build zstd!"
     exit 1
 )

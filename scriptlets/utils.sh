@@ -14,6 +14,8 @@
 # GNU General Public License for more details.
 #
 
+set -eou pipefail
+
 # Some common functions and varibles to be sourced by our build scripts
 
 ####################

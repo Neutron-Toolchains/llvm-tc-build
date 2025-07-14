@@ -14,8 +14,13 @@
 # GNU General Public License for more details.
 #
 
-check_if_exists "${LLVM_STAGE1_BIN_DIR}"
-check_if_exists "${LLVM_STAGE2_BIN_DIR}"
+set -eoux pipefail
+
+check_if_exists "${LLVM_STAGE1_INSTALL_DIR}"
+check_if_exists "${LLVM_STAGE2_INSTALL_DIR}"
+
+LLVM_STAGE1_BIN_DIR="${LLVM_STAGE1_INSTALL_DIR}/bin"
+LLVM_STAGE2_BIN_DIR="${LLVM_STAGE2_INSTALL_DIR}/bin"
 
 LINUX_VER=$(curl -sL "https://www.kernel.org" | grep -A 1 "latest_link" | tail -n +2 | sed 's|.*">||' | sed 's|</a>||')
 
@@ -138,12 +143,8 @@ echo "Training arm64"
 make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm64 KCFLAGS="-mllvm -regalloc-enable-advisor=release" KLDFLAGS="-mllvm -regalloc-enable-advisor=release" \
     "${KMAKEFLAGS[@]}" || exit ${?}
 
-echo "Training arm"
-make distclean defconfig all -sj"$(getconf _NPROCESSORS_ONLN)" ARCH=arm KCFLAGS="-mllvm -regalloc-enable-advisor=release" KLDFLAGS="-mllvm -regalloc-enable-advisor=release" \
-    "${KMAKEFLAGS[@]}" || exit ${?}
-
 # Mark build as done
-rm -f "$FLAG_LOCK"
+rm -f "$LOCK_FILE"
 
 # Wait for the daemon to exit
 wait $DAEMON_PID

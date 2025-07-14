@@ -20,11 +20,11 @@ source "$(pwd)"/scriptlets/_llvm.sh
 
 parse_llvm_args "$@"
 
-echo "Verifying dependencies"
+echo "=>Verifying dependencies"
 check_if_exists "${LLVM_SRC_DIR}"
 check_if_exists "${MLGO_DIR}/x86"
 
-echo "Starting Stage 1 Build"
+echo "=> Starting Stage 1 Build"
 mkdir -p "${LLVM_STAGE1_BUILD_DIR}" && cd "${LLVM_STAGE1_BUILD_DIR}"
 
 LLVM_BIN_DIR=$(readlink -f "$(which clang)" | rev | cut -d'/' -f2- | rev)
@@ -123,16 +123,16 @@ cmake -G Ninja -Wno-dev \
     "${LLVM_SRC_DIR}"/llvm
 
 ninja -j"$(getconf _NPROCESSORS_ONLN)" || (
-    echo "Could not build project!"
+    echo "=> Could not build project!"
     exit 1
 )
 
 if [[ ${CI} -eq 1 ]]; then
-    echo "Installing to ${LLVM_STAGE1_INSTALL_DIR}"
+    echo "=> Installing to ${LLVM_STAGE1_INSTALL_DIR}"
     ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
-        echo "Could not install project!"
+        echo "=> Could not install project!"
         exit 1
     )
 fi
 
-echo "Ending Stage 1 Build"
+echo "=> Stage 1 Build complete"
