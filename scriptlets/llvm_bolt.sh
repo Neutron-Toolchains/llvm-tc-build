@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 
-set -eoux pipefail
+set -eou pipefail
 
 source "$(pwd)"/scriptlets/_llvm.sh
 

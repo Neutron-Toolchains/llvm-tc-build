@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 
-set -eoux pipefail
+set -eou pipefail
 
 check_if_exists "${LLVM_STAGE1_INSTALL_DIR}"
 check_if_exists "${LLVM_STAGE2_INSTALL_DIR}"
