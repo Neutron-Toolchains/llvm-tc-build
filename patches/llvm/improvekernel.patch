@@ -1,13 +1,11 @@
 diff --git a/clang/lib/Sema/SemaChecking.cpp b/clang/lib/Sema/SemaChecking.cpp
 --- a/clang/lib/Sema/SemaChecking.cpp
 +++ b/clang/lib/Sema/SemaChecking.cpp
-@@ -13865,7 +13865,8 @@
-     }
+@@ -13449,7 +13449,8 @@
    }
- 
--  DiagnoseNullConversion(S, E, T, CC);
-+  if (S.getLangOpts().CPlusPlus)
-+    DiagnoseNullConversion(S, E, T, CC);
- 
-   S.DiscardMisalignedMemberAddress(Target, E);
- 
+
+-  DiagnoseNullConversion(*this, E, T, CC);
++  if (getLangOpts().CPlusPlus)
++    DiagnoseNullConversion(*this, E, T, CC);
+
+   DiscardMisalignedMemberAddress(Target, E);

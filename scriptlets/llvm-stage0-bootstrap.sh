@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2025 Dakkshesh <beakthoven@gmail.com>. All rights reserved.
+# Copyright (C) 2026 Dakkshesh <beakthoven@gmail.com>. All rights reserved.
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,12 +20,12 @@ source "$(pwd)"/scriptlets/_llvm.sh
 
 parse_llvm_args "$@"
 
-echo "=>Verifying dependencies"
-check_if_exists "${LLVM_SRC_DIR}"
-check_if_exists "${MLGO_DIR}/x86"
+log "STAGE 0: Bootstrap Compiler"
 
-echo "=> Starting Stage 1 Build"
-mkdir -p "${LLVM_STAGE1_BUILD_DIR}" && cd "${LLVM_STAGE1_BUILD_DIR}"
+info "Verifying dependencies"
+check_if_exists "${LLVM_SRC_DIR}"
+#TODO: Re-enable once MLGO is added
+#check_if_exists "${MLGO_DIR}/x86"
 
 LLVM_BIN_DIR=$(readlink -f "$(which clang)" | rev | cut -d'/' -f2- | rev)
 
@@ -34,35 +34,35 @@ if [[ ${USE_MOLD} -eq 1 ]]; then
     LINKER="mold"
 fi
 
-OPT_FLAGS="-march=native -mtune=native ${CLANG_OPT_CFLAGS[*]} -fuse-ld=${LINKER}"
-OPT_FLAGS_LD="${CLANG_OPT_LDFLAGS[*]}"
+_OPT_CFLAGS=(
+    "-march=native"
+    "-mtune=native"
+    "${GLOBAL_CFLAGS[@]}"
+)
+_OPT_LDFLAGS=(
+    "-fuse-ld=${LINKER}"
+    "${GLOBAL_LDFLAGS[@]}"
+)
 
-OPT_FLAGS_LD_EXE="${OPT_FLAGS_LD}"
-
-STAGE1_PROJS="clang;lld"
-
-if [[ ${BOLT_OPT} -eq 1 ]]; then
-    STAGE1_PROJS+=";bolt"
-fi
-
-if [[ ${POLLY_OPT} -eq 1 ]]; then
-    STAGE1_PROJS+=";polly"
-fi
-
-rm -rf "${LLVM_STAGE1_BUILD_DIR}"
-mkdir -p "${LLVM_STAGE1_BUILD_DIR}" && cd "${LLVM_STAGE1_BUILD_DIR}"
-export TF_CPP_MIN_LOG_LEVEL=2
-cmake -G Ninja -Wno-dev \
+rm -rf "${LLVM_STAGE0_BUILD_DIR}"
+mkdir -p "${LLVM_STAGE0_BUILD_DIR}" && cd "${LLVM_STAGE0_BUILD_DIR}"
+#TODO: Enable once MLGO is added
+#export TF_CPP_MIN_LOG_LEVEL=2
+cmake -Wno-dev -G Ninja \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    -DLLVM_ENABLE_PROJECTS="${STAGE1_PROJS}" \
+    -DLLVM_ENABLE_PROJECTS="clang;lld;polly" \
+    -DLLVM_DISTRIBUTION_COMPONENTS="clang;lld;llvm-ar;llvm-nm;llvm-objcopy;llvm-objdump;llvm-readobj;llvm-symbolizer;llvm-profdata;llvm-as;runtimes" \
     -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind;libcxx;libcxxabi" \
-    -DCMAKE_INSTALL_PREFIX="${LLVM_STAGE1_INSTALL_DIR}" \
+    -DCMAKE_INSTALL_PREFIX="${LLVM_STAGE0_INSTALL_DIR}" \
     -DLLVM_TARGETS_TO_BUILD="X86" \
-    -DCLANG_DEFAULT_CXX_STDLIB="libc++" \
     -DCLANG_DEFAULT_LINKER="lld" \
     -DCLANG_DEFAULT_OBJCOPY="llvm-objcopy" \
     -DCLANG_DEFAULT_RTLIB="compiler-rt" \
+    -DCLANG_DEFAULT_CXX_STDLIB="libc++" \
     -DCLANG_DEFAULT_UNWINDLIB="libunwind" \
+    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+    -DLIBUNWIND_ENABLE_SHARED=OFF \
+    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
     -DCOMPILER_RT_BUILD_BUILTINS=ON \
     -DCOMPILER_RT_BUILD_GWP_ASAN=OFF \
     -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
@@ -73,21 +73,6 @@ cmake -G Ninja -Wno-dev \
     -DCOMPILER_RT_BUILD_XRAY=OFF \
     -DCOMPILER_RT_HAS_GCC_S_LIB=OFF \
     -DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON \
-    -DLIBCXX_CXX_ABI=libcxxabi \
-    -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF \
-    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
-    -DLIBCXX_HAS_ATOMIC_LIB=OFF \
-    -DLIBCXX_HAS_GCC_LIB=OFF \
-    -DLIBCXX_HAS_GCC_S_LIB=OFF \
-    -DLIBCXX_HAS_MUSL_LIBC=OFF \
-    -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
-    -DLIBCXX_INCLUDE_DOCS=OFF \
-    -DLIBCXX_INCLUDE_TESTS=OFF \
-    -DLIBCXX_USE_COMPILER_RT=ON \
-    -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
-    -DLIBCXXABI_INCLUDE_TESTS=OFF \
-    -DLIBCXXABI_USE_COMPILER_RT=ON \
-    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
     -DLIBUNWIND_INCLUDE_DOCS=OFF \
     -DLIBUNWIND_INCLUDE_TESTS=OFF \
     -DLIBUNWIND_INSTALL_HEADERS=ON \
@@ -95,11 +80,9 @@ cmake -G Ninja -Wno-dev \
     -DLINK_POLLY_INTO_TOOLS=ON \
     -DLLVM_CCACHE_BUILD=ON \
     -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF \
-    -DLLVM_ENABLE_PIC=OFF \
-    -DTENSORFLOW_AOT_PATH="$(python3 -c "import tensorflow; import os; print(os.path.dirname(tensorflow.__file__))")" \
-    -DLLVM_INLINER_MODEL_PATH="${MLGO_DIR}/x86/inline/model" \
-    -DLLVM_RAEVICT_MODEL_PATH="${MLGO_DIR}/x86/regalloc/model" \
-    -DLLVM_TOOL_LLVM_DRIVER_BUILD=ON \
+    -DLLVM_ENABLE_PIC=ON \
+    -DLLVM_ENABLE_LTO=OFF \
+    -DLLVM_STATIC_LINK_CXX_STDLIB=ON \
     -DCMAKE_C_COMPILER_LAUNCHER=ccache \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DCMAKE_C_COMPILER="${LLVM_BIN_DIR}"/clang \
@@ -113,26 +96,20 @@ cmake -G Ninja -Wno-dev \
     -DCMAKE_RANLIB="${LLVM_BIN_DIR}"/llvm-ranlib \
     -DCMAKE_READELF="${LLVM_BIN_DIR}"/llvm-readelf \
     -DCMAKE_ADDR2LINE="${LLVM_BIN_DIR}"/llvm-addr2line \
-    -DCMAKE_C_FLAGS="${OPT_FLAGS}" \
-    -DCMAKE_ASM_FLAGS="${OPT_FLAGS}" \
-    -DCMAKE_CXX_FLAGS="${OPT_FLAGS}" \
-    -DCMAKE_EXE_LINKER_FLAGS="${OPT_FLAGS_LD_EXE}" \
-    -DCMAKE_MODULE_LINKER_FLAGS="${OPT_FLAGS_LD}" \
-    -DCMAKE_SHARED_LINKER_FLAGS="${OPT_FLAGS_LD}" \
+    -DCMAKE_C_FLAGS="${_OPT_CFLAGS[*]}" \
+    -DCMAKE_CXX_FLAGS="${_OPT_CFLAGS[*]}" \
+    -DCMAKE_ASM_FLAGS="${_OPT_CFLAGS[*]}" \
+    -DCMAKE_EXE_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
+    -DCMAKE_MODULE_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
+    -DCMAKE_SHARED_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
     "${LLVM_COMMON_ARGS[@]}" \
     "${LLVM_SRC_DIR}"/llvm
 
-ninja -j"$(getconf _NPROCESSORS_ONLN)" || (
-    echo "=> Could not build project!"
-    exit 1
-)
+ninja -j"${NPROC}" distribution || die "Could not build project!"
 
 if [[ ${CI} -eq 1 ]]; then
-    echo "=> Installing to ${LLVM_STAGE1_INSTALL_DIR}"
-    ninja install -j"$(getconf _NPROCESSORS_ONLN)" || (
-        echo "=> Could not install project!"
-        exit 1
-    )
+    info "Installing to ${LLVM_STAGE0_INSTALL_DIR}"
+    ninja install-distribution -j"${NPROC}" || die "Could not install project!"
 fi
 
-echo "=> Stage 1 Build complete"
+ok "Stage 0: Build complete"

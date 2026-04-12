@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (C) 2025 Dakkshesh <beakthoven@gmail.com>. All rights reserved.
+# Copyright (C) 2026 Dakkshesh <beakthoven@gmail.com>. All rights reserved.
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,38 +16,65 @@
 
 set -eou pipefail
 
-source "$(pwd)"/scriptlets/utils.sh
+source "$(pwd)"/scriptlets/_opt_flags.sh
 
 ################
 # LLVM Builder #
 ################
+
 export CLEAN_BUILD=1
-export POLLY_OPT=0
-export BOLT_OPT=0
-export LLVM_OPT=0
 export USE_MOLD=0
+export CI=0
+export SHALLOW_CLONE=0
+
 export LLVM_SRC_DIR="${SRC_DIR}/llvm-project"
+export MLGO_DIR="${SRC_DIR}/mlgo-models"
 
-export LLVM_STAGE1_BUILD_DIR="${BUILD_DIR}/stage1"
-export LLVM_STAGE1_INSTALL_DIR="${LLVM_STAGE1_BUILD_DIR}"
+export MLGO_X86_REGALLOC="${MLGO_DIR}/x86/regalloc"
+export MLGO_X86_INLINE="${MLGO_DIR}/x86/inline"
+export MLGO_ARM64_REGALLOC="${MLGO_DIR}/arm64/regalloc"
+export MLGO_ARM64_INLINE="${MLGO_DIR}/arm64/inline/model"
 
-export LLVM_STAGE2_BUILD_DIR="${BUILD_DIR}/stage2"
+export LLVM_STAGE0_BUILD_DIR="${BUILD_DIR}/stage0-bootstrap"
+export LLVM_STAGE0_INSTALL_DIR="${LLVM_STAGE0_BUILD_DIR}"
+export LLVM_STAGE0_BIN_DIR="${LLVM_STAGE0_INSTALL_DIR}/bin"
+
+export LLVM_STAGE2_BUILD_DIR="${BUILD_DIR}/stage2-pgo-instr"
 export LLVM_STAGE2_INSTALL_DIR="${LLVM_STAGE2_BUILD_DIR}"
 
-export LLVM_STAGE3_BUILD_DIR="${BUILD_DIR}/stage3"
+export LLVM_STAGE3_BUILD_DIR="${BUILD_DIR}/stage3-cspgo-instr"
 export LLVM_STAGE3_INSTALL_DIR="${LLVM_STAGE3_BUILD_DIR}"
+
+export LLVM_STAGE4_LABELS_BUILD_DIR="${BUILD_DIR}/stage4-labels"
+export LLVM_STAGE4_LABELS_INSTALL_DIR="${LLVM_STAGE4_LABELS_BUILD_DIR}"
+
+export LLVM_STAGE4_FINAL_BUILD_DIR="${BUILD_DIR}/stage4-final"
+export LLVM_STAGE4_FINAL_INSTALL_DIR="${LLVM_STAGE4_FINAL_BUILD_DIR}"
 
 export LLVM_INSTALL_DIR="${WORK_DIR}/install"
 
-export PROFILE_DIR="${LLVM_STAGE2_BUILD_DIR}/profiles"
-export PROFDATA_OUT="${PROFILE_DIR}/llvm.profdata"
+export PROFILE_DIR="${BUILD_DIR}/profiles"
+export PGO_RAW_DIR="${PROFILE_DIR}/pgo-raw"
+export CSPGO_RAW_DIR="${PROFILE_DIR}/cspgo-raw"
+export PROPELLER_RAW_DIR="${PROFILE_DIR}/propeller-raw"
+export PGO_PROFDATA="${PROFILE_DIR}/pgo.profdata"
+export CSPGO_PROFDATA="${PROFILE_DIR}/cspgo.profdata"
+export PROPELLER_CC_PROFILE="${PROFILE_DIR}/cc_profile.txt"
+export PROPELLER_LD_PROFILE="${PROFILE_DIR}/ld_profile.txt"
 
-export MLGO_DIR="${SRC_DIR}/mlgo-models"
+export MIMALLOC_STATIC="${LLVM_STAGE0_INSTALL_DIR}/lib/libmimalloc.a"
 
-export CI=0
+export STATIC_LINK_FLAGS=(
+    "-Wl,--push-state -Wl,--whole-archive ${MIMALLOC_STATIC} -Wl,--pop-state"
+    "-static-libstdc++"
+)
+
+export PROFILING_COMMON=(
+    "-fprofile-update=atomic"
+    "-mllvm" "-enable-value-profiling"
+)
 
 llvm_fetch() {
-
     if ! git "$1" https://github.com/llvm/llvm-project.git "$2"; then
         echo "llvm-project git ${1}: Failed" >&2
         exit 1
@@ -55,59 +82,30 @@ llvm_fetch() {
 }
 
 get_linux_tarball() {
-
     if [[ -e linux-"$1".tar.xz ]]; then
         echo "Existing linux-$1 tarball found, skipping download"
     else
         echo "Downloading linux-$1 tarball"
-        wget "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$1.tar.xz"
+        wget "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-$1.tar.xz"
     fi
     rm -rf linux-"$1"
     tar xf linux-"$1".tar.xz
 }
 
-export LLVM_ARCH="${ARCH_GENERIC}"
-
 parse_llvm_args() {
     for arg in "$@"; do
         case "${arg}" in
-            "--all-opts")
-                POLLY_OPT=1
-                BOLT_OPT=1
-                LLVM_OPT=1
-                AVX_OPT=1
-                ;;
             "--incremental")
                 CLEAN_BUILD=0
                 ;;
             "--shallow-clone")
                 SHALLOW_CLONE=1
                 ;;
-            "--polly-opt")
-                POLLY_OPT=1
-                ;;
-            "--bolt-opt")
-                BOLT_OPT=1
-                ;;
-            "--llvm-opt")
-                LLVM_OPT=1
-                ;;
             "--use-mold")
                 USE_MOLD=1
                 ;;
-            "--install-dir"*)
-                FINAL_INSTALL_DIR="${arg#*--install-dir}"
-                FINAL_INSTALL_DIR=${FINAL_INSTALL_DIR:1}
-                ;;
             "--ci-run")
                 CI=1
-                LLVM_STAGE1_INSTALL_DIR="${LLVM_STAGE1_BUILD_DIR}/install"
-                LLVM_STAGE2_INSTALL_DIR="${LLVM_STAGE2_BUILD_DIR}/install"
-                LLVM_STAGE3_INSTALL_DIR="${LLVM_STAGE3_BUILD_DIR}/install"
-                ;;
-            "--avx2")
-                AVX_OPT=1
-                export LLVM_ARCH="${ARCH_AVX2}"
                 ;;
             *)
                 echo "Invalid argument passed: ${arg}"
@@ -125,13 +123,13 @@ export LLVM_COMMON_ARGS=(
     "-DCMAKE_BUILD_TYPE=Release"
     "-DLLD_VENDOR='Neutron'"
     "-DLLVM_ENABLE_BACKTRACES=OFF"
+    "-DLLVM_INCLUDE_BENCHMARKS=OFF"
     "-DLLVM_ENABLE_BINDINGS=OFF"
-    "-DLLVM_ENABLE_LTO=Thin"
     "-DLLVM_ENABLE_OCAMLDOC=OFF"
     "-DLLVM_ENABLE_TERMINFO=OFF"
     "-DLLVM_ENABLE_WARNINGS=OFF"
-    "-DLLVM_PARALLEL_COMPILE_JOBS=$(getconf _NPROCESSORS_ONLN)"
-    "-DLLVM_PARALLEL_LINK_JOBS=$(getconf _NPROCESSORS_ONLN)"
+    "-DLLVM_PARALLEL_COMPILE_JOBS=${NPROC}"
+    "-DLLVM_PARALLEL_LINK_JOBS=${NPROC}"
     "-DLLVM_EXTERNAL_CLANG_TOOLS_EXTRA_SOURCE_DIR="
     "-DLLVM_INCLUDE_DOCS=OFF"
     "-DLLVM_INCLUDE_EXAMPLES=OFF"
@@ -143,18 +141,22 @@ export LLVM_COMMON_ARGS=(
     "-DLLVM_ENABLE_Z3_SOLVER=OFF"
 )
 
-# BOLT
-export BOLT_ARGS=(
-    "--dyno-stats"
-    "--eliminate-unreachable"
-    "--frame-opt=hot"
-    "--icf=1"
-    "--plt=hot"
-    "--reorder-blocks=ext-tsp"
-    "--reorder-functions=hfsort+"
-    "--split-all-cold"
-    "--split-eh"
-    "--split-functions"
-    "--thread-count=$(getconf _NPROCESSORS_ONLN)"
-    "--use-gnu-stack"
-)
+build_kmakeflags() {
+    local BIN_DIR="$1"
+    export KMAKEFLAGS=(
+        "LLVM=1"
+        "LLVM_IAS=1"
+        "CC=${BIN_DIR}/clang"
+        "LD=${BIN_DIR}/ld.lld"
+        "AR=${BIN_DIR}/llvm-ar"
+        "NM=${BIN_DIR}/llvm-nm"
+        "STRIP=${BIN_DIR}/llvm-strip"
+        "OBJCOPY=${BIN_DIR}/llvm-objcopy"
+        "OBJDUMP=${BIN_DIR}/llvm-objdump"
+        "READELF=${BIN_DIR}/llvm-readelf"
+        "HOSTCC=${BIN_DIR}/clang"
+        "HOSTCXX=${BIN_DIR}/clang++"
+        "HOSTAR=${BIN_DIR}/llvm-ar"
+        "HOSTLD=${BIN_DIR}/ld.lld"
+    )
+}

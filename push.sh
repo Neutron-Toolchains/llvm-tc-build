@@ -1,7 +1,27 @@
 #!/usr/bin/env bash
-source utils.sh
-# Script to push final built clang to my repo
-set -e
+#
+# Copyright (C) 2026 Dakkshesh <beakthoven@gmail.com>. All rights reserved.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+set -eou pipefail
+
+source "$(pwd)"/scriptlets/_llvm.sh
+parse_llvm_args "$@"
+
+echo "=> Verifying dependencies"
+check_if_exists "${LLVM_INSTALL_DIR}"
+LLVM_INSTALL_BIN_DIR="${LLVM_INSTALL_DIR}/bin"
 
 # Specify some variables.
 CURRENT_DIR=$(pwd)
@@ -96,16 +116,12 @@ end_msg="
 <b>Ayo! New Neutron Clang Update!</b>
 
 <b>Toolchain details</b>
-Clang version: <code>${clang_version}</code>
+clang version: <code>${clang_version}</code>
 LLVM commit: <a href='${llvm_commit_url}'> Here </a>
-Builder commit: <a href='https://github.com/Neutron-Toolchains/clang-build/commit/${builder_commit}'> Here </a>
-Build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>
-Build Tag: <code>${rel_tag}</code>
-
-<b>Host system details</b>
-Distro: <a href='https://github.com/Neutron-Toolchains/docker-image'> ArchLinux(docker) </a>
-Clang version: <code>$(clang --version | head -n1 | grep -oE '[^ ]+$')</code>
-Glibc version: <code>$(ldd --version | head -n1 | grep -oE '[^ ]+$')</code>
+builder commit: <a href='https://github.com/Neutron-Toolchains/clang-build/commit/${builder_commit}'> Here </a>
+build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>
+build Tag: <code>${rel_tag}</code>
+glibc version: <code>$(ldd --version | head -n1 | grep -oE '[^ ]+$')</code>
 
 <b>Build Release:</b><a href='https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/tag/${rel_tag}'> github.com </a>
 "
