@@ -52,6 +52,7 @@ _OPT_LDFLAGS=(
     "${FULL_LDFLAGS[@]}"
     "-fuse-ld=${LLVM_STAGE0_BIN_DIR}/ld.lld"
     "-Wl,--lto-basic-block-address-map"
+    "-Wl,--lto-cs-profile-file=${CSPGO_PROFDATA}"
     "-Wl,--build-id=sha1"
     "-Wl,--symbol-ordering-file=${PROPELLER_LD_PROFILE}"
     "-Wl,--no-warn-symbol-ordering"

@@ -37,7 +37,6 @@ _OPT_CFLAGS=(
     "${FULL_OPT_CFLAGS[@]}"
     "-mprefer-vector-width=256"
     "-fprofile-use=${PGO_PROFDATA}"
-    "${PROFILING_COMMON[@]}"
     "-Wno-ignored-optimization-argument"
     "-Wno-unused-command-line-argument"
 )
@@ -46,6 +45,8 @@ _OPT_LDFLAGS=(
     "-L${LLVM_STAGE0_INSTALL_DIR}/lib"
     "${STATIC_LINK_FLAGS[@]}"
     "${FULL_LDFLAGS[@]}"
+    "-Wl,--lto-cs-profile-generate"
+    "-Wl,--lto-cs-profile-file=${CSPGO_RAW_DIR}/cspgo_%m.profraw"
 )
 
 

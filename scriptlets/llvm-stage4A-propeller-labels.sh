@@ -47,6 +47,7 @@ _OPT_LDFLAGS=(
     "${STATIC_LINK_FLAGS[@]}"
     "${FULL_LDFLAGS[@]}"
     "-fuse-ld=${LLVM_STAGE0_BIN_DIR}/ld.lld"
+    "-Wl,--lto-cs-profile-file=${CSPGO_PROFDATA}"
     "-Wl,--lto-basic-block-address-map"
     "-Wl,--build-id=sha1"
 )
