@@ -53,7 +53,15 @@ git_get() {
     if [[ -d $dir ]]; then
         info "Directory $dir already exists, checking for updates..."
         cd "$dir" || die "Could not cd into $dir"
-        git pull origin "$branch"
+        git fetch --force --tags origin || die "Could not fetch updates for $dir"
+        git reset --hard || die "Could not reset $dir"
+        git clean -ffd || die "Could not clean $dir"
+
+        if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+            git checkout -B "$branch" "origin/$branch" || die "Could not checkout $branch in $dir"
+        else
+            git checkout --force "$branch" || die "Could not checkout $branch in $dir"
+        fi
     else
         info "Cloning $repo into $dir"
         git clone "$repo" "$dir" -b "$branch"
