@@ -14,116 +14,144 @@
 # GNU General Public License for more details.
 #
 
-set -eou pipefail
+set -euo pipefail
 
-source "$(pwd)"/scriptlets/_llvm.sh
+source "$(pwd)/scriptlets/_llvm.sh"
 parse_llvm_args "$@"
 
 echo "=> Verifying dependencies"
 check_if_exists "${LLVM_INSTALL_DIR}"
-LLVM_INSTALL_BIN_DIR="${LLVM_INSTALL_DIR}/bin"
 
-# Specify some variables.
-CURRENT_DIR=$(pwd)
-LLVM_DIR="${CURRENT_DIR}/llvm-project"
+# Directories
+CURRENT_DIR="$(pwd)"
+LLVM_DIR="${LLVM_SRC_DIR}"
 NEUTRON_DIR="${CURRENT_DIR}/clang-build-catalogue"
 INSTALL_DIR="${CURRENT_DIR}/install"
 
-rel_tag="$(date "+%d%m%Y")"     # "{date}{month}{year}" format
-rel_date="$(date "+%-d %B %Y")" # "Day Month Year" format
+# Release metadata
+rel_tag="$(date '+%d%m%Y')"
+rel_date="$(date '+%-d %B %Y')"
 rel_file="${CURRENT_DIR}/neutron-clang-${rel_tag}.tar.zst"
 
-neutron_fetch() {
+CATALOGUE_REPO="https://github.com/Neutron-Toolchains/clang-build-catalogue.git"
 
-    if ! git "${1}" https://github.com/Neutron-Toolchains/clang-build-catalogue.git; then
-        exit 1
-    fi
+neutron_fetch() {
+    case "${1}" in
+        clone)
+            git clone "${CATALOGUE_REPO}" "${NEUTRON_DIR}"
+            ;;
+        pull)
+            (
+                cd "${NEUTRON_DIR}"
+                git pull --rebase origin main
+            )
+            ;;
+        *)
+            die "Unknown neutron_fetch action: ${1}"
+            ;;
+    esac
 }
 
-#LLVM Info
 cd "${LLVM_DIR}"
 llvm_commit="$(git rev-parse HEAD)"
 llvm_commit_url="https://github.com/llvm/llvm-project/commit/${llvm_commit}"
 
-# Clang Info
 cd "${CURRENT_DIR}"
-clang_version="$(install/bin/clang --version | head -n1 | cut -d' ' -f4)"
-h_glibc="$(ldd --version | head -n1 | grep -oE '[^ ]+$')"
 
-# Builder Info
-cd "${CURRENT_DIR}"
 builder_commit="$(git rev-parse HEAD)"
+builder_commit_url="https://github.com/Neutron-Toolchains/llvm-tc-build/commit/${builder_commit}"
 
-if [[ -d "${NEUTRON_DIR}"/ ]]; then
-    cd "${NEUTRON_DIR}"/
-    if ! git status; then
-        cd "${CURRENT_DIR}"
-        neutron_fetch "clone"
-    else
-        neutron_fetch "pull"
-        cd "${CURRENT_DIR}"
-    fi
+h_glibc="$(ldd --version | awk 'NR==1{print $NF}')"
+clang_version="$("${INSTALL_DIR}/bin/clang" --version | grep -oP '(?<=clang version )\S+')"
+
+if [[ -d "${NEUTRON_DIR}/.git" ]]; then
+    echo "=> Updating catalogue repository"
+    neutron_fetch pull
 else
-    neutron_fetch "clone"
+    echo "=> Cloning catalogue repository"
+    neutron_fetch clone
 fi
 
+echo "=> Creating release archive"
+
 cd "${INSTALL_DIR}"
+
 tar -I "zstd -T$(nproc --all) -19" -cf "${rel_file}" .
-rel_shasum=$(sha256sum "${rel_file}" | awk '{print $1}')
-rel_size=$(du -sh "${rel_file}" | awk '{print $1}')
+
+rel_shasum="$(sha256sum "${rel_file}" | awk '{print $1}')"
+
+rel_size="$(du -sh "${rel_file}" | awk '{print $1}')"
+
+echo "=> Generating metadata"
 
 cd "${NEUTRON_DIR}"
-rm -rf latest.txt
-touch latest.txt
-echo -e "[tag]\n${rel_tag}" >>latest.txt
+printf "[tag]\n%s\n" "${rel_tag}" >latest.txt
 
-touch "${rel_tag}-info.txt"
-{
-    echo -e "[date]\n${rel_date}\n"
-    echo -e "[clang-ver]\n${clang_version}\n"
-    echo -e "[llvm-commit]\n${llvm_commit_url}\n"
-    echo -e "[host-glibc]\n${h_glibc}\n"
-    echo -e "[size]\n${rel_size}\n"
-    echo -e "[shasum]\n${rel_shasum}"
-} >>"${rel_tag}-info.txt"
+cat >"${rel_tag}-info.txt" <<EOF
+[date]
+${rel_date}
+
+[clang-ver]
+${clang_version}
+
+[llvm-commit]
+${llvm_commit_url}
+
+[host-glibc]
+${h_glibc}
+
+[size]
+${rel_size}
+
+[shasum]
+${rel_shasum}
+EOF
+
+echo "=> Pushing catalogue updates"
 
 git add -A
-git commit -asm "catalogue: Add Neutron Clang build ${rel_tag}
+
+if ! git diff --cached --quiet; then
+    git commit -m "catalogue: Add Neutron Clang build ${rel_tag}
 
 Clang Version: ${clang_version}
 LLVM commit: ${llvm_commit_url}
-Builder commit: https://github.com/Neutron-Toolchains/llvm-tc-build/commit/${builder_commit}
+Builder commit: ${builder_commit_url}
 Release: https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/tag/${rel_tag}"
-git gc
-git push "https://dakkshesh07:${GHUB_TOKEN}@github.com/Neutron-Toolchains/clang-build-catalogue.git" main -f
-
-if gh release view "${rel_tag}"; then
-    echo "Uploading build archive to '${rel_tag}'..."
-    gh release upload --clobber "${rel_tag}" "${rel_file}" && {
-        echo "Version ${rel_tag} updated!"
-    }
-else
-    echo "Creating release with tag '${rel_tag}'..."
-    gh release create "${rel_tag}" "${rel_file}" -t "${rel_date}" -n "" && {
-        echo "Version ${rel_tag} released!"
-    }
 fi
 
-git push "https://dakkshesh07:${GHUB_TOKEN}@github.com/Neutron-Toolchains/clang-build-catalogue.git" main -f
-echo "push complete"
+git gc
+git push origin main -f
+
+echo "=> Publishing GitHub release"
+
+if gh release view "${rel_tag}" >/dev/null 2>&1; then
+    echo "Uploading build archive to '${rel_tag}'..."
+    gh release upload --clobber "${rel_tag}" "${rel_file}"
+    echo "Version ${rel_tag} updated!"
+else
+    echo "Creating release '${rel_tag}'..."
+    gh release create "${rel_tag}" "${rel_file}" --title "${rel_date}" --notes ""
+    echo "Version ${rel_tag} released!"
+fi
+
+git push origin main -f
+
+echo "=> Push complete"
 
 end_msg="
 <b>Ayo! New Neutron Clang Update!</b>
 
 <b>Toolchain details</b>
 clang version: <code>${clang_version}</code>
-LLVM commit: <a href='${llvm_commit_url}'> Here </a>
-builder commit: <a href='https://github.com/Neutron-Toolchains/clang-build/commit/${builder_commit}'> Here </a>
-build Date: <code>$(date +"%Y-%m-%d %H:%M")</code>
-build Tag: <code>${rel_tag}</code>
-glibc version: <code>$(ldd --version | head -n1 | grep -oE '[^ ]+$')</code>
+LLVM commit: <a href='${llvm_commit_url}'>Here</a>
+builder commit: <a href='${builder_commit_url}'>Here</a>
+build date: <code>$(date '+%Y-%m-%d %H:%M')</code>
+build tag: <code>${rel_tag}</code>
+glibc version: <code>${h_glibc}</code>
 
-<b>Build Release:</b><a href='https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/tag/${rel_tag}'> github.com </a>
+<b>Build Release:</b>
+<a href='https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/tag/${rel_tag}'>github.com</a>
 "
 
 tgsend "${end_msg}"

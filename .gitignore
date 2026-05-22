@@ -2,6 +2,8 @@
 build/*
 sources/*
 neutron-clang/
+clang-build-catalogue/
+*.zst
 
 # Ignore final install dir as well
 install/
