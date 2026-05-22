@@ -27,7 +27,7 @@ check_if_exists "${LLVM_STAGE0_INSTALL_DIR}"
 
 ZLIB_VERSION="2.3.3"
 ZSTD_VERSION="v1.5.7"
-MIMALLOC_VERSION="v3.2.8"
+MIMALLOC_VERSION="v3.3.2"
 
 # Sync sources
 cd "${SRC_DIR}"
