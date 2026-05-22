@@ -37,7 +37,6 @@ _OPT_CFLAGS=(
     "-march=x86-64-v3"
     "${GLOBAL_CFLAGS[@]}"
     "-mprefer-vector-width=256"
-    "-funique-internal-linkage-names"
     "${STRUCTURAL_CFLAGS[@]}"
     "${POLLY_PASSES[@]}"
     "${VECTORIZATION_PASSES[@]}"
