@@ -34,14 +34,9 @@ export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${LLVM_STAGE0_INSTALL_DIR}/lib"
 
 _OPT_CFLAGS=(
-    "-march=x86-64-v3"
-    "${GLOBAL_CFLAGS[@]}"
+    "${FULL_OPT_CFLAGS[@]}"
     "-mprefer-vector-width=256"
-    "${STRUCTURAL_CFLAGS[@]}"
-    "${POLLY_PASSES[@]}"
-    "${VECTORIZATION_PASSES[@]}"
     "-fprofile-use=${PGO_PROFDATA}"
-    "${PGO_CFLAGS[@]}"
     "${PROFILING_COMMON[@]}"
     "-Wno-ignored-optimization-argument"
     "-Wno-unused-command-line-argument"
@@ -49,8 +44,8 @@ _OPT_CFLAGS=(
 
 _OPT_LDFLAGS=(
     "-L${LLVM_STAGE0_INSTALL_DIR}/lib"
-    "${GLOBAL_LDFLAGS[@]}"
     "${STATIC_LINK_FLAGS[@]}"
+    "${FULL_LDFLAGS[@]}"
 )
 
 
@@ -75,7 +70,7 @@ cmake -G Ninja -Wno-dev \
     -DLLVM_BUILD_RUNTIME=OFF \
     -DLLVM_INCLUDE_UTILS=ON \
     -DLLVM_STATIC_LINK_CXX_STDLIB=ON \
-    -DLLVM_ENABLE_LTO=OFF \
+    -DLLVM_ENABLE_LTO=Thin \
     -DLLVM_ENABLE_LLD=ON \
     -DLLVM_ENABLE_PIC=ON \
     -DLLVM_ENABLE_UNWIND_TABLES=OFF \
