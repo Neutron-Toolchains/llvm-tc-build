@@ -35,10 +35,23 @@ if [[ ${USE_MOLD} -eq 1 ]]; then
 fi
 
 _OPT_CFLAGS=(
-    "-march=native"
-    "-mtune=native"
+    "-march=x86-64-v3"
     "${GLOBAL_CFLAGS[@]}"
+    "-mprefer-vector-width=256"
+    "-funique-internal-linkage-names"
+    "-fno-semantic-interposition"
+    "-fno-plt"
+    "-fno-trapping-math"
+    "-fno-math-errno"
+    "-mharden-sls=none"
+    "-ffp-contract=fast"
+    "-fexcess-precision=fast"
+    "-mllvm" "-enable-gvn-hoist=1"
+    "-mllvm" "-enable-dfa-jump-thread=1"
+    "-mllvm" "-adce-remove-loops"
+    "${VECTORIZATION_PASSES[@]}"
 )
+
 _OPT_LDFLAGS=(
     "-fuse-ld=${LINKER}"
     "${GLOBAL_LDFLAGS[@]}"
