@@ -36,10 +36,26 @@ LABELS_AR_BINARY=$(readlink -f "${LABELS_BIN_DIR}/llvm-ar")
 [[ -f ${LABELS_AR_BINARY} ]] || die "Labels llvm-ar binary not found: ${LABELS_AR_BINARY}"
 [[ -x "${LLVM_STAGE0_BIN_DIR}/generate_propeller_profiles" ]] || die "generate_propeller_profiles not found in ${LLVM_STAGE0_BIN_DIR}"
 
-# Verify LBR availability
-if ! perf record -e cycles:u -j any,u -o /dev/null -- true &>/dev/null 2>&1; then
+PERF_EVENT=""
+EVENTS_TO_TEST=(
+    "br_inst_retired.near_taken:uppp"
+    "ex_ret_brn_tkn:u"
+    "br_inst_retired.near_taken:u"
+    "cycles:u"
+)
+
+for event in "${EVENTS_TO_TEST[@]}"; do
+    if perf record -e "${event}" -j any,u -o /dev/null -- true >/dev/null 2>&1; then
+        PERF_EVENT="${event}"
+        break
+    fi
+done
+
+if [[ -z ${PERF_EVENT} ]]; then
     die "LBR not available."
 fi
+
+info "Using perf event: ${PERF_EVENT}"
 
 # Fetch kernel source
 cd "${SRC_DIR}" || exit 1
@@ -77,18 +93,20 @@ build_kmakeflags "${LABELS_BIN_DIR}"
 
 info "Profiling X86_64 kernel build"
 perf record \
-    -e cycles:u \
+    -e "${PERF_EVENT}" \
     -j any,u \
     -c 500009 \
     -o "${PROPELLER_RAW_DIR}/perf.x86_64" \
+    -N \
     -- make distclean defconfig all -sj"${NPROC}" "${KMAKEFLAGS[@]}" || exit ${?}
 
 info "Profiling ARM64 kernel build"
 perf record \
-    -e cycles:u \
+    -e "${PERF_EVENT}" \
     -j any,u \
     -c 500009 \
     -o "${PROPELLER_RAW_DIR}/perf.arm64" \
+    -N \
     -- make distclean defconfig all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}" || exit ${?}
 
 info "perf data: $(du -shc "${PROPELLER_RAW_DIR}"/perf.x86_64 "${PROPELLER_RAW_DIR}"/perf.arm64 | tail -1 | cut -f1)"
