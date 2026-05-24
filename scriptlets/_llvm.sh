@@ -57,10 +57,12 @@ export PROFILE_DIR="${BUILD_DIR}/profiles"
 export PGO_RAW_DIR="${PROFILE_DIR}/pgo-raw"
 export CSPGO_RAW_DIR="${PROFILE_DIR}/cspgo-raw"
 export PROPELLER_RAW_DIR="${PROFILE_DIR}/propeller-raw"
+export CSSSPGO_RAW_DIR="${PROFILE_DIR}/cssspgo-raw"
 export PGO_PROFDATA="${PROFILE_DIR}/pgo.profdata"
 export CSPGO_PROFDATA="${PROFILE_DIR}/cspgo.profdata"
 export PROPELLER_CC_PROFILE="${PROFILE_DIR}/cc_profile.txt"
 export PROPELLER_LD_PROFILE="${PROFILE_DIR}/ld_profile.txt"
+export CSSSPGO_PROFDATA="${PROFILE_DIR}/cssspgo.profdata"
 
 export MIMALLOC_STATIC="${LLVM_STAGE0_INSTALL_DIR}/lib/libmimalloc.a"
 
@@ -68,6 +70,8 @@ export STATIC_LINK_FLAGS=(
     "-Wl,--push-state -Wl,--whole-archive ${MIMALLOC_STATIC} -Wl,--pop-state"
     "-static-libstdc++"
 )
+
+CSSPGO=0
 
 export PROFILING_COMMON=(
     "-fprofile-update=atomic"
@@ -106,6 +110,11 @@ parse_llvm_args() {
                 ;;
             "--ci-run")
                 CI=1
+                ;;
+            "--csspgo")
+                CSSPGO=1
+                export LLVM_STAGE2_BUILD_DIR="${BUILD_DIR}/stage2-csspgo"
+                export LLVM_STAGE2_INSTALL_DIR="${LLVM_STAGE2_BUILD_DIR}"
                 ;;
             *)
                 echo "Invalid argument passed: ${arg}"

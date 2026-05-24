@@ -95,17 +95,25 @@ bash "${WORK_DIR}"/scriptlets/llvm-stage0-bootstrap.sh "$@"
 # Stage 1: Dependencies (mimalloc, zlib-ng, zstd, generate_propeller_profiles)
 bash "${WORK_DIR}"/scriptlets/llvm-stage1-deps.sh "$@"
 
-# Stage 2A: IR PGO instrumented build
-bash "${WORK_DIR}"/scriptlets/llvm-stage2A-irpgo.sh "$@"
+if [[ ${CSSPGO} -eq 0 ]]; then
+    # Stage 2A: IR PGO instrumented build
+    bash "${WORK_DIR}"/scriptlets/llvm-stage2A-irpgo.sh "$@"
 
-# Stage 2B: PGO training
-bash "${WORK_DIR}"/scriptlets/llvm-stage2B-irpgo-train.sh "$@"
+    # Stage 2B: PGO training
+    bash "${WORK_DIR}"/scriptlets/llvm-stage2B-irpgo-train.sh "$@"
 
-# Stage 3A: CSPGO instrumented build
-bash "${WORK_DIR}"/scriptlets/llvm-stage3A-cspgo.sh "$@"
+    # Stage 3A: CSPGO instrumented build
+    bash "${WORK_DIR}"/scriptlets/llvm-stage3A-cspgo.sh "$@"
 
-# Stage 3B: CSPGO training
-bash "${WORK_DIR}"/scriptlets/llvm-stage3B-cspgo-train.sh "$@"
+    # Stage 3B: CSPGO training
+    bash "${WORK_DIR}"/scriptlets/llvm-stage3B-cspgo-train.sh "$@"
+else
+    # Stage 2A: CSSPGO instrumented build
+    bash "${WORK_DIR}"/scriptlets/llvm-stage2A-cssspgo.sh "$@"
+
+    # Stage 2B: CSSPGO training
+    bash "${WORK_DIR}"/scriptlets/llvm-stage2B-cssspgo-train.sh "$@"
+fi
 
 # Stage 4A: Propeller labels build
 bash "${WORK_DIR}"/scriptlets/llvm-stage4A-propeller-labels.sh "$@"

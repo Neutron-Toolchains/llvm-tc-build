@@ -37,7 +37,6 @@ _OPT_CFLAGS=(
     "${FULL_OPT_CFLAGS[@]}"
     "-fbasic-block-address-map"
     "-mprefer-vector-width=256"
-    "-fprofile-use=${CSPGO_PROFDATA}"
     "-Wno-ignored-optimization-argument"
     "-Wno-unused-command-line-argument"
 )
@@ -47,10 +46,22 @@ _OPT_LDFLAGS=(
     "${STATIC_LINK_FLAGS[@]}"
     "${FULL_LDFLAGS[@]}"
     "-fuse-ld=${LLVM_STAGE0_BIN_DIR}/ld.lld"
-    "-Wl,--lto-cs-profile-file=${CSPGO_PROFDATA}"
     "-Wl,--lto-basic-block-address-map"
     "-Wl,--build-id=sha1"
+    "-Wl,-mllvm,-enable-ext-tsp-block-placement=1"
 )
+
+PROFILE_ARG=()
+if [[ ${CSSPGO} -eq 1 ]]; then
+    _OPT_CFLAGS+=("-fpseudo-probe-for-profiling")
+    _OPT_CFLAGS+=("-fprofile-sample-use=${CSSSPGO_PROFDATA}")
+    _OPT_CFLAGS+=("-fprofile-sample-accurate")
+    _OPT_LDFLAGS+=("-Wl,--lto-sample-profile=${CSSSPGO_PROFDATA}")
+    PROFILE_ARG=("-DLLVM_SPROFDATA_FILE=${CSSSPGO_PROFDATA}")
+else
+    _OPT_CFLAGS+=("-fprofile-use=${CSPGO_PROFDATA}")
+    _OPT_LDFLAGS+=("-Wl,--lto-cs-profile-file=${CSPGO_PROFDATA}")
+fi
 
 rm -rf "${LLVM_STAGE4_LABELS_BUILD_DIR}"
 mkdir -p "${LLVM_STAGE4_LABELS_BUILD_DIR}" && cd "${LLVM_STAGE4_LABELS_BUILD_DIR}"
@@ -62,7 +73,6 @@ cmake -G Ninja -Wno-dev \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
     -DLLVM_ENABLE_PROJECTS='clang;lld;polly' \
     -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
-    -DLLVM_ENABLE_UNWIND_TABLES=OFF \
     -DCLANG_DEFAULT_LINKER="lld" \
     -DCLANG_DEFAULT_OBJCOPY="llvm-objcopy" \
     -DLLVM_DISTRIBUTION_COMPONENTS="clang;clang-resource-headers;lld;libclang-headers;llvm-ar;llvm-as;llvm-nm;llvm-objcopy;llvm-objdump;llvm-readelf;llvm-strip;runtimes;builtins" \
@@ -102,6 +112,7 @@ cmake -G Ninja -Wno-dev \
     -DCMAKE_EXE_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
     -DCMAKE_MODULE_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
     -DCMAKE_SHARED_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
+    "${PROFILE_ARG[@]}" \
     "${LLVM_COMMON_ARGS[@]}" \
     "${LLVM_SRC_DIR}"/llvm
 

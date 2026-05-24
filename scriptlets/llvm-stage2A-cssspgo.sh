@@ -20,23 +20,27 @@ source "$(pwd)"/scriptlets/_llvm.sh
 
 parse_llvm_args "$@"
 
-log "STAGE 3A: CSPGO Instrumented Build"
+log "STAGE 2A: CSSPGO Instrumented Build"
 
 info "Verifying dependencies"
 check_if_exists "${LLVM_SRC_DIR}"
 check_if_exists "${LLVM_STAGE0_INSTALL_DIR}"
 #TODO: Re-enable once MLGO is added
 #check_if_exists "${MLGO_DIR}/arm64"
-[[ -f ${PGO_PROFDATA} ]] || die "PGO profdata not found: ${PGO_PROFDATA}"
-
 MODDED_PATH="${LLVM_STAGE0_BIN_DIR}:${STOCK_PATH}"
 export PATH="${MODDED_PATH}"
 export LD_LIBRARY_PATH="${LLVM_STAGE0_INSTALL_DIR}/lib"
 
 _OPT_CFLAGS=(
-    "${FULL_OPT_CFLAGS[@]}"
+    "-march=x86-64-v3"
+    "${GLOBAL_CFLAGS[@]}"
+    "-flto=thin"
+    "-fwhole-program-vtables"
+    "-fsplit-lto-unit"
     "-mprefer-vector-width=256"
-    "-fprofile-use=${PGO_PROFDATA}"
+    "${STRUCTURAL_CFLAGS[@]}"
+    "${POLLY_PASSES[@]}"
+    "${VECTORIZATION_PASSES[@]}"
     "-Wno-ignored-optimization-argument"
     "-Wno-unused-command-line-argument"
 )
@@ -45,35 +49,39 @@ _OPT_LDFLAGS=(
     "-L${LLVM_STAGE0_INSTALL_DIR}/lib"
     "${STATIC_LINK_FLAGS[@]}"
     "${FULL_LDFLAGS[@]}"
-    "-Wl,--lto-cs-profile-generate"
-    "-Wl,--lto-cs-profile-file=${CSPGO_RAW_DIR}/cspgo_%m.profraw"
+    "-fuse-ld=${LLVM_STAGE0_BIN_DIR}/ld.lld"
+    "-Wl,--build-id=sha1"
 )
 
-mkdir -p "${CSPGO_RAW_DIR}"
-
-rm -rf "${LLVM_STAGE3_BUILD_DIR}"
-mkdir -p "${LLVM_STAGE3_BUILD_DIR}" && cd "${LLVM_STAGE3_BUILD_DIR}"
+rm -rf "${LLVM_STAGE2_BUILD_DIR}"
+mkdir -p "${LLVM_STAGE2_BUILD_DIR}" && cd "${LLVM_STAGE2_BUILD_DIR}"
 #TODO: Enable once MLGO is added
 #export TF_CPP_MIN_LOG_LEVEL=2
 cmake -G Ninja -Wno-dev \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    -DCMAKE_INSTALL_PREFIX="${LLVM_STAGE3_INSTALL_DIR}" \
+    -DCMAKE_INSTALL_PREFIX="${LLVM_STAGE2_INSTALL_DIR}" \
     -DLLVM_TARGETS_TO_BUILD='AArch64;ARM;X86' \
-    -DLLVM_ENABLE_PROJECTS='clang;lld' \
+    -DLLVM_ENABLE_PROJECTS='clang;lld;polly' \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_DISTRIBUTION_COMPONENTS="clang;clang-resource-headers;lld;libclang-headers;llvm-ar;llvm-as;llvm-nm;llvm-objcopy;llvm-objdump;llvm-readelf;llvm-strip;runtimes;builtins" \
     -DCLANG_DEFAULT_LINKER="lld" \
     -DCLANG_DEFAULT_OBJCOPY="llvm-objcopy" \
-    -DLLVM_DISTRIBUTION_COMPONENTS="clang;clang-resource-headers;lld;libclang-headers;llvm-ar;llvm-as;llvm-nm;llvm-objcopy;llvm-objdump;llvm-readelf;llvm-strip" \
-    -DLIBCLANG_BUILD_STATIC=OFF \
-    -DLLVM_BUILD_INSTRUMENTED=CSIR \
-    -DLLVM_LINK_LLVM_DYLIB=OFF \
-    -DLLVM_CSPROFILE_DATA_DIR="${CSPGO_RAW_DIR}" \
-    -DLLVM_BUILD_RUNTIME=OFF \
-    -DLLVM_INCLUDE_UTILS=ON \
-    -DLLVM_STATIC_LINK_CXX_STDLIB=ON \
+    -DCOMPILER_RT_BUILD_BUILTINS=ON \
+    -DCOMPILER_RT_BUILD_CRT=ON \
+    -DCOMPILER_RT_BUILD_PROFILE=ON \
+    -DCOMPILER_RT_BUILD_GWP_ASAN=OFF \
+    -DCOMPILER_RT_BUILD_MEMPROF=OFF \
+    -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+    -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+    -DCOMPILER_RT_BUILD_XRAY=OFF \
+    -DCOMPILER_RT_BUILD_ORC=OFF \
+    -DENABLE_LINKER_BUILD_ID=ON \
+    -DLLVM_BUILD_INSTRUMENTED=CSSPGO \
     -DLLVM_ENABLE_LTO=Thin \
     -DLLVM_ENABLE_LLD=ON \
     -DLLVM_ENABLE_PIC=ON \
-    -DLLVM_ENABLE_UNWIND_TABLES=OFF \
+    -DLLVM_STATIC_LINK_CXX_STDLIB=ON \
+    -DLINK_POLLY_INTO_TOOLS=ON \
     -DLLVM_ENABLE_ZLIB=ON \
     -DLLVM_ENABLE_ZSTD=ON \
     -DLLVM_USE_STATIC_ZSTD=ON \
@@ -102,6 +110,6 @@ cmake -G Ninja -Wno-dev \
     "${LLVM_COMMON_ARGS[@]}" \
     "${LLVM_SRC_DIR}"/llvm
 
-ninja -j"${NPROC}" distribution || die "Could not build project!"
+ninja distribution -j"${NPROC}" || die "Could not build project!"
 
-ok "STAGE 3A: Build complete"
+ok "STAGE 2A: build complete"

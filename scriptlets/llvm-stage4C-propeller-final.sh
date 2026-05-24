@@ -37,9 +37,7 @@ export LD_LIBRARY_PATH="${LLVM_STAGE0_INSTALL_DIR}/lib"
 
 _OPT_CFLAGS=(
     "${FULL_OPT_CFLAGS[@]}"
-    "-fbasic-block-address-map"
     "-mprefer-vector-width=256"
-    "-fprofile-use=${CSPGO_PROFDATA}"
     "-fbasic-block-sections=list=${PROPELLER_CC_PROFILE}"
     "-fomit-frame-pointer"
     "-Wno-ignored-optimization-argument"
@@ -51,12 +49,23 @@ _OPT_LDFLAGS=(
     "${STATIC_LINK_FLAGS[@]}"
     "${FULL_LDFLAGS[@]}"
     "-fuse-ld=${LLVM_STAGE0_BIN_DIR}/ld.lld"
-    "-Wl,--lto-basic-block-address-map"
-    "-Wl,--lto-cs-profile-file=${CSPGO_PROFDATA}"
     "-Wl,--build-id=sha1"
     "-Wl,--symbol-ordering-file=${PROPELLER_LD_PROFILE}"
     "-Wl,--no-warn-symbol-ordering"
+    "-Wl,-mllvm,-enable-ext-tsp-block-placement=1"
 )
+
+PROFILE_ARG=()
+if [[ ${CSSPGO} -eq 1 ]]; then
+    _OPT_CFLAGS+=("-fpseudo-probe-for-profiling")
+    _OPT_CFLAGS+=("-fprofile-sample-use=${CSSSPGO_PROFDATA}")
+    _OPT_CFLAGS+=("-fprofile-sample-accurate")
+    _OPT_LDFLAGS+=("-Wl,--lto-sample-profile=${CSSSPGO_PROFDATA}")
+    PROFILE_ARG=("-DLLVM_SPROFDATA_FILE=${CSSSPGO_PROFDATA}")
+else
+    _OPT_CFLAGS+=("-fprofile-use=${CSPGO_PROFDATA}")
+    _OPT_LDFLAGS+=("-Wl,--lto-cs-profile-file=${CSPGO_PROFDATA}")
+fi
 
 rm -rf "${LLVM_STAGE4_FINAL_BUILD_DIR}"
 mkdir -p "${LLVM_STAGE4_FINAL_BUILD_DIR}" && cd "${LLVM_STAGE4_FINAL_BUILD_DIR}"
@@ -112,6 +121,7 @@ cmake -G Ninja -Wno-dev \
     -DCMAKE_EXE_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
     -DCMAKE_MODULE_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
     -DCMAKE_SHARED_LINKER_FLAGS="${_OPT_LDFLAGS[*]}" \
+    "${PROFILE_ARG[@]}" \
     "${LLVM_COMMON_ARGS[@]}" \
     "${LLVM_SRC_DIR}"/llvm
 

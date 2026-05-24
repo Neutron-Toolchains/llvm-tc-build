@@ -97,7 +97,6 @@ perf record \
     -j any,u \
     -c 500009 \
     -o "${PROPELLER_RAW_DIR}/perf.x86_64" \
-    -N \
     -- make distclean defconfig all -sj"${NPROC}" "${KMAKEFLAGS[@]}" || exit ${?}
 
 info "Profiling ARM64 kernel build"
@@ -106,7 +105,6 @@ perf record \
     -j any,u \
     -c 500009 \
     -o "${PROPELLER_RAW_DIR}/perf.arm64" \
-    -N \
     -- make distclean defconfig all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}" || exit ${?}
 
 info "perf data: $(du -shc "${PROPELLER_RAW_DIR}"/perf.x86_64 "${PROPELLER_RAW_DIR}"/perf.arm64 | tail -1 | cut -f1)"

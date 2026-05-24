@@ -59,7 +59,7 @@ mkdir -p "${LLVM_STAGE0_BUILD_DIR}" && cd "${LLVM_STAGE0_BUILD_DIR}"
 cmake -Wno-dev -G Ninja \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DLLVM_ENABLE_PROJECTS="clang;lld;polly" \
-    -DLLVM_DISTRIBUTION_COMPONENTS="clang;lld;llvm-ar;llvm-nm;llvm-objcopy;llvm-objdump;llvm-readobj;llvm-symbolizer;llvm-profdata;llvm-as;runtimes" \
+    -DLLVM_DISTRIBUTION_COMPONENTS="clang;lld;llvm-ar;llvm-nm;llvm-objcopy;llvm-objdump;llvm-readobj;llvm-symbolizer;llvm-profdata;llvm-as;runtimes;llvm-profgen" \
     -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind;libcxx;libcxxabi" \
     -DCMAKE_INSTALL_PREFIX="${LLVM_STAGE0_INSTALL_DIR}" \
     -DLLVM_TARGETS_TO_BUILD="X86" \
