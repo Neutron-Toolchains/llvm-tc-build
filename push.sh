@@ -23,15 +23,12 @@ echo "=> Verifying dependencies"
 check_if_exists "${LLVM_INSTALL_DIR}"
 
 # Directories
-CURRENT_DIR="$(pwd)"
-LLVM_DIR="${LLVM_SRC_DIR}"
-NEUTRON_DIR="${CURRENT_DIR}/clang-build-catalogue"
-INSTALL_DIR="${CURRENT_DIR}/install"
+NEUTRON_DIR="${SRC_DIR}/clang-build-catalogue"
 
 # Release metadata
 rel_tag="$(date '+%d%m%Y')"
 rel_date="$(date '+%-d %B %Y')"
-rel_file="${CURRENT_DIR}/neutron-clang-${rel_tag}.tar.zst"
+rel_file="${WORK_DIR}/neutron-clang-${rel_tag}.tar.zst"
 
 CATALOGUE_REPO="https://github.com/Neutron-Toolchains/clang-build-catalogue.git"
 
@@ -52,29 +49,30 @@ neutron_fetch() {
     esac
 }
 
-cd "${LLVM_DIR}"
+cd "${LLVM_SRC_DIR}"
 llvm_commit="$(git rev-parse HEAD)"
 llvm_commit_url="https://github.com/llvm/llvm-project/commit/${llvm_commit}"
 
-cd "${CURRENT_DIR}"
+cd "${WORK_DIR}"
 
 builder_commit="$(git rev-parse HEAD)"
 builder_commit_url="https://github.com/Neutron-Toolchains/llvm-tc-build/commit/${builder_commit}"
 
 h_glibc="$(ldd --version | awk 'NR==1{print $NF}')"
-clang_version="$("${INSTALL_DIR}/bin/clang" --version | grep -oP '(?<=clang version )\S+')"
+clang_version="$("${LLVM_INSTALL_DIR}/bin/clang" --version | grep -oP '(?<=clang version )\S+')"
 
 if [[ -d "${NEUTRON_DIR}/.git" ]]; then
     echo "=> Updating catalogue repository"
     neutron_fetch pull
 else
     echo "=> Cloning catalogue repository"
+    rm -rf "${NEUTRON_DIR}"
     neutron_fetch clone
 fi
 
 echo "=> Creating release archive"
 
-cd "${INSTALL_DIR}"
+cd "${LLVM_INSTALL_DIR}"
 
 tar -I "zstd -T$(nproc --all) -19" -cf "${rel_file}" .
 
@@ -155,3 +153,4 @@ glibc version: <code>${h_glibc}</code>
 "
 
 tgsend "${end_msg}"
+rm -rf "${rel_file}"
