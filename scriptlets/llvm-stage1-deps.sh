@@ -133,6 +133,7 @@ if ! command -v generate_propeller_profiles >/dev/null; then
         "${PROPELLER_SRC}"
     ninja generate_propeller_profiles -j"${NPROC}" || die "Could not build generate_propeller_profiles!"
     cp -f "${BUILD_DIR}/propeller-tool/propeller/generate_propeller_profiles" "${LLVM_STAGE0_BIN_DIR}/"
+    patchelf --set-rpath '${ORIGIN}/../lib' "${LLVM_STAGE0_BIN_DIR}/generate_propeller_profiles" || die "Could not set rpath for generate_propeller_profiles!"
 else
     info "host generate_propeller_profiles already found, linking to ${LLVM_STAGE0_BIN_DIR}"
     ln -sv "$(readlink -f "$(command -v generate_propeller_profiles)")" "${LLVM_STAGE0_BIN_DIR}/generate_propeller_profiles"
