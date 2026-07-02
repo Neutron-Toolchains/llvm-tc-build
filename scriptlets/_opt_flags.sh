@@ -46,6 +46,7 @@ export STRUCTURAL_CFLAGS=(
 
 export PGO_CFLAGS=(
     "-mllvm" "-enable-chr=true"
+    "-fsplit-machine-functions"
 )
 
 export VECTORIZATION_PASSES=(
