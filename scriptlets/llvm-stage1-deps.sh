@@ -116,10 +116,6 @@ info "Building generate_propeller_profiles"
 PROPELLER_SRC="${SRC_DIR}/llvm-propeller"
 git_get "https://github.com/google/llvm-propeller.git" "main" "${PROPELLER_SRC}"
 
-#TODO: Remove once upstream is stable
-cd "${PROPELLER_SRC}"
-git checkout ca1d2e6826461ca506eaa045d1d74b9031c8bce0 || die "Could not checkout propeller source!"
-
 if ! command -v generate_propeller_profiles >/dev/null; then
     rm -rf "${BUILD_DIR}/propeller-tool"
     mkdir -p "${BUILD_DIR}/propeller-tool" && cd "${BUILD_DIR}/propeller-tool"
