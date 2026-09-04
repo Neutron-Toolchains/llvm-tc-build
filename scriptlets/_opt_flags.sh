@@ -40,12 +40,10 @@ export STRUCTURAL_CFLAGS=(
     "-ffp-contract=fast"
     "-fexcess-precision=fast"
     "-mllvm" "-enable-gvn-hoist=1"
-    "-mllvm" "-enable-dfa-jump-thread=1"
     "-mllvm" "-adce-remove-loops"
 )
 
 export PGO_CFLAGS=(
-    "-mllvm" "-enable-chr=true"
     "-fsplit-machine-functions"
 )
 
@@ -56,7 +54,6 @@ export VECTORIZATION_PASSES=(
     "-mllvm" "-extra-vectorizer-passes"
     "-mllvm" "-enable-unroll-and-jam"
     "-mllvm" "-enable-masked-interleaved-mem-accesses"
-    "-mllvm" "-enable-loopinterchange"
     "-mllvm" "-enable-loop-flatten"
     "-mllvm" "-enable-loop-distribute"
     "-mllvm" "-enable-interleaved-mem-accesses"

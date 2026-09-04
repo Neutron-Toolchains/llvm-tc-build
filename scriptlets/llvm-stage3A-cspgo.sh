@@ -35,7 +35,6 @@ export LD_LIBRARY_PATH="${LLVM_STAGE0_INSTALL_DIR}/lib"
 
 _OPT_CFLAGS=(
     "${FULL_OPT_CFLAGS[@]}"
-    "-mprefer-vector-width=256"
     "-fprofile-use=${PGO_PROFDATA}"
     "-Wno-ignored-optimization-argument"
     "-Wno-unused-command-line-argument"

@@ -37,7 +37,6 @@ export LD_LIBRARY_PATH="${LLVM_STAGE0_INSTALL_DIR}/lib"
 
 _OPT_CFLAGS=(
     "${FULL_OPT_CFLAGS[@]}"
-    "-mprefer-vector-width=256"
     "-fbasic-block-sections=list=${PROPELLER_CC_PROFILE}"
     "-fomit-frame-pointer"
     "-Wno-ignored-optimization-argument"

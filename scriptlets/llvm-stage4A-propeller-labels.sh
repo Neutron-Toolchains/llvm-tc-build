@@ -36,7 +36,6 @@ export LD_LIBRARY_PATH="${LLVM_STAGE0_INSTALL_DIR}/lib"
 _OPT_CFLAGS=(
     "${FULL_OPT_CFLAGS[@]}"
     "-fbasic-block-address-map"
-    "-mprefer-vector-width=256"
     "-Wno-ignored-optimization-argument"
     "-Wno-unused-command-line-argument"
 )
