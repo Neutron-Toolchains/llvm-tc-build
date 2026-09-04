@@ -119,6 +119,7 @@ export LTO_LDFLAGS=(
     "-Wl,--lto-O3"
     "-Wl,--lto-CGO3"
     "-Wl,--thinlto-jobs=${NPROC}"
+    "-Wl,-mllvm,-split-machine-functions"
 )
 
 export FULL_LDFLAGS=(
