@@ -89,6 +89,7 @@ info "Raw files: $(find "${PGO_RAW_DIR}" -name '*.profraw' 2>/dev/null | wc -l)"
 "${LLVM_STAGE0_BIN_DIR}"/llvm-profdata merge \
     --output="${PGO_PROFDATA}" \
     --num-threads="${NPROC}" \
+    --sparse \
     "${PGO_RAW_DIR}"/*.profraw
 
 info "PGO Profile Size: ${PGO_PROFDATA}: $(du -sh "${PGO_PROFDATA}" | cut -f1)"

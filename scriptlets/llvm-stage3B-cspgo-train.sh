@@ -88,6 +88,7 @@ info "CS raw files: $(find "${CSPGO_RAW_DIR}" -name '*.profraw' 2>/dev/null | wc
 "${LLVM_STAGE0_BIN_DIR}"/llvm-profdata merge \
     --output="${CSPGO_PROFDATA}" \
     --num-threads="${NPROC}" \
+    --sparse \
     "${PGO_PROFDATA}" \
     "${CSPGO_RAW_DIR}"/*.profraw
 
