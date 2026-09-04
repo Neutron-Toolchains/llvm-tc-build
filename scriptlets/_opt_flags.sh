@@ -45,6 +45,7 @@ export STRUCTURAL_CFLAGS=(
 
 export PGO_CFLAGS=(
     "-fsplit-machine-functions"
+    "-mllvm" "-enable-vtable-profile-use"
 )
 
 export VECTORIZATION_PASSES=(
@@ -117,6 +118,7 @@ export LTO_LDFLAGS=(
     "-Wl,--lto-CGO3"
     "-Wl,--thinlto-jobs=${NPROC}"
     "-Wl,-mllvm,-split-machine-functions"
+    "-Wl,-mllvm,-enable-vtable-profile-use"
 )
 
 export FULL_LDFLAGS=(

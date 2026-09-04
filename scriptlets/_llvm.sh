@@ -76,6 +76,7 @@ CSSPGO=0
 export PROFILING_COMMON=(
     "-fprofile-update=atomic"
     "-mllvm" "-enable-value-profiling"
+    "-mllvm" "-enable-vtable-value-profiling"
 )
 
 llvm_fetch() {
