@@ -110,6 +110,8 @@ export GLOBAL_LDFLAGS=(
     "-Wl,-Bsymbolic-functions"
     "-Wl,-z,keep-text-section-prefix"
     "-Wl,-z,max-page-size=0x200000"
+    "-Wl,-z,pack-relative-relocs"
+    "-Wl,--hash-style=gnu"
 )
 
 export LTO_LDFLAGS=(
