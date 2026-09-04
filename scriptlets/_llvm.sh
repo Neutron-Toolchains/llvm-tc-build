@@ -171,3 +171,16 @@ build_kmakeflags() {
         "HOSTLD=${BIN_DIR}/ld.lld"
     )
 }
+
+# Reconfigure the kernel tree in CWD for a ThinLTO build. Training only
+# on defconfig (LTO_NONE) kernels never exercises clang/lld's ThinLTO
+# paths, which is what the shipped toolchain mostly gets used for.
+# KMAKEFLAGS must be on every make invocation: HAS_LTO_CLANG is
+# re-evaluated by Kconfig each time and silently falls back to LTO_NONE
+# if the LLVM tools are not passed.
+enable_kernel_thinlto() {
+    make distclean defconfig -sj"${NPROC}" "$@" "${KMAKEFLAGS[@]}"
+    scripts/config -d LTO_NONE -e LTO_CLANG_THIN
+    make olddefconfig "$@" "${KMAKEFLAGS[@]}"
+    grep -q '^CONFIG_LTO_CLANG_THIN=y' .config || die "LTO_CLANG_THIN was not enabled"
+}

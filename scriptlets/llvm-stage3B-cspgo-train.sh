@@ -73,6 +73,14 @@ info "Profiling ARM64"
 make distclean defconfig all -sj"${NPROC}" ARCH=arm64 \
     "${KMAKEFLAGS[@]}" || die "Training failed for arm64"
 
+info "Profiling X86_64 (ThinLTO)"
+enable_kernel_thinlto
+make all -sj"${NPROC}" "${KMAKEFLAGS[@]}" || die "LTO training failed for x86_64"
+
+info "Profiling ARM64 (ThinLTO)"
+enable_kernel_thinlto ARCH=arm64
+make all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}" || die "LTO training failed for arm64"
+
 unset LLD_IN_TEST
 
 info "Merging CS-PGO profiles (layered on PGO base)"

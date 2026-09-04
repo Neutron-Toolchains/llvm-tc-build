@@ -99,6 +99,28 @@ perf record \
     -o "${CSSSPGO_RAW_DIR}/perf.arm64" \
     -- make distclean defconfig all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}"
 
+info "Profiling x86_64 kernel build (ThinLTO)"
+enable_kernel_thinlto
+perf record \
+    -g \
+    --call-graph fp \
+    -e "${PERF_EVENT}" \
+    -j any,u \
+    -c 500009 \
+    -o "${CSSSPGO_RAW_DIR}/perf.x86_64_lto" \
+    -- make all -sj"${NPROC}" "${KMAKEFLAGS[@]}"
+
+info "Profiling arm64 kernel build (ThinLTO)"
+enable_kernel_thinlto ARCH=arm64
+perf record \
+    -g \
+    --call-graph fp \
+    -e "${PERF_EVENT}" \
+    -j any,u \
+    -c 500009 \
+    -o "${CSSSPGO_RAW_DIR}/perf.arm64_lto" \
+    -- make all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}"
+
 run_profgen() {
     "${LLVM_STAGE0_BIN_DIR}/llvm-profgen" \
         --perfdata="${1}" \
@@ -117,6 +139,12 @@ run_profgen "${CSSSPGO_RAW_DIR}/perf.x86_64" "${_AR_BINARY}" "${CSSSPGO_RAW_DIR}
 run_profgen "${CSSSPGO_RAW_DIR}/perf.arm64" "${_CLANG_BINARY}" "${CSSSPGO_RAW_DIR}/clang_arm64.prof"
 run_profgen "${CSSSPGO_RAW_DIR}/perf.arm64" "${_LLD_BINARY}" "${CSSSPGO_RAW_DIR}/lld_arm64.prof"
 run_profgen "${CSSSPGO_RAW_DIR}/perf.arm64" "${_AR_BINARY}" "${CSSSPGO_RAW_DIR}/ar_arm64.prof"
+run_profgen "${CSSSPGO_RAW_DIR}/perf.x86_64_lto" "${_CLANG_BINARY}" "${CSSSPGO_RAW_DIR}/clang_x86_64_lto.prof"
+run_profgen "${CSSSPGO_RAW_DIR}/perf.x86_64_lto" "${_LLD_BINARY}" "${CSSSPGO_RAW_DIR}/lld_x86_64_lto.prof"
+run_profgen "${CSSSPGO_RAW_DIR}/perf.x86_64_lto" "${_AR_BINARY}" "${CSSSPGO_RAW_DIR}/ar_x86_64_lto.prof"
+run_profgen "${CSSSPGO_RAW_DIR}/perf.arm64_lto" "${_CLANG_BINARY}" "${CSSSPGO_RAW_DIR}/clang_arm64_lto.prof"
+run_profgen "${CSSSPGO_RAW_DIR}/perf.arm64_lto" "${_LLD_BINARY}" "${CSSSPGO_RAW_DIR}/lld_arm64_lto.prof"
+run_profgen "${CSSSPGO_RAW_DIR}/perf.arm64_lto" "${_AR_BINARY}" "${CSSSPGO_RAW_DIR}/ar_arm64_lto.prof"
 
 "${LLVM_STAGE0_BIN_DIR}/llvm-profdata" merge \
     --sample \

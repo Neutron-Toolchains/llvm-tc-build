@@ -107,8 +107,26 @@ perf record \
     -o "${PROPELLER_RAW_DIR}/perf.arm64" \
     -- make distclean defconfig all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}" || exit ${?}
 
-info "perf data: $(du -shc "${PROPELLER_RAW_DIR}"/perf.x86_64 "${PROPELLER_RAW_DIR}"/perf.arm64 | tail -1 | cut -f1)"
-COMBINED_PERF="${PROPELLER_RAW_DIR}/perf.x86_64,${PROPELLER_RAW_DIR}/perf.arm64"
+info "Profiling X86_64 kernel build (ThinLTO)"
+enable_kernel_thinlto
+perf record \
+    -e "${PERF_EVENT}" \
+    -j any,u \
+    -c 500009 \
+    -o "${PROPELLER_RAW_DIR}/perf.x86_64_lto" \
+    -- make all -sj"${NPROC}" "${KMAKEFLAGS[@]}" || exit ${?}
+
+info "Profiling ARM64 kernel build (ThinLTO)"
+enable_kernel_thinlto ARCH=arm64
+perf record \
+    -e "${PERF_EVENT}" \
+    -j any,u \
+    -c 500009 \
+    -o "${PROPELLER_RAW_DIR}/perf.arm64_lto" \
+    -- make all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}" || exit ${?}
+
+info "perf data: $(du -shc "${PROPELLER_RAW_DIR}"/perf.* | tail -1 | cut -f1)"
+COMBINED_PERF="${PROPELLER_RAW_DIR}/perf.x86_64,${PROPELLER_RAW_DIR}/perf.arm64,${PROPELLER_RAW_DIR}/perf.x86_64_lto,${PROPELLER_RAW_DIR}/perf.arm64_lto"
 
 info "STAGE 4B: Generating Propeller profiles"
 
