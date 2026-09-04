@@ -70,7 +70,7 @@ cmake -G Ninja -Wno-dev --log-level=WARNING \
     -DCMAKE_RANLIB="${LLVM_STAGE0_BIN_DIR}"/llvm-ranlib \
     -DCMAKE_READELF="${LLVM_STAGE0_BIN_DIR}"/llvm-readelf \
     -DCMAKE_ADDR2LINE="${LLVM_STAGE0_BIN_DIR}"/llvm-addr2line \
-    -DCMAKE_C_FLAGS="${_OPT_CFLAGS[*]}" \
+    -DCMAKE_C_FLAGS="${_OPT_CFLAGS[*]} -DMI_OPT_SIMD=1" \
     -DCMAKE_CXX_FLAGS="${_OPT_CFLAGS[*]}" \
     "${SRC_DIR}/mimalloc"
 ninja install -j"${NPROC}" || die "Could not build mimalloc!"
