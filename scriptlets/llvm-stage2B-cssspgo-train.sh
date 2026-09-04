@@ -85,7 +85,7 @@ perf record \
     --call-graph fp \
     -e "${PERF_EVENT}" \
     -j any,u \
-    -c 500009 \
+    -c 100003 \
     -o "${CSSSPGO_RAW_DIR}/perf.x86_64" \
     -- make distclean defconfig all -sj"${NPROC}" "${KMAKEFLAGS[@]}"
 
@@ -95,7 +95,7 @@ perf record \
     --call-graph fp \
     -e "${PERF_EVENT}" \
     -j any,u \
-    -c 500009 \
+    -c 100003 \
     -o "${CSSSPGO_RAW_DIR}/perf.arm64" \
     -- make distclean defconfig all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}"
 
@@ -106,7 +106,7 @@ perf record \
     --call-graph fp \
     -e "${PERF_EVENT}" \
     -j any,u \
-    -c 500009 \
+    -c 100003 \
     -o "${CSSSPGO_RAW_DIR}/perf.x86_64_lto" \
     -- make all -sj"${NPROC}" "${KMAKEFLAGS[@]}"
 
@@ -117,7 +117,7 @@ perf record \
     --call-graph fp \
     -e "${PERF_EVENT}" \
     -j any,u \
-    -c 500009 \
+    -c 100003 \
     -o "${CSSSPGO_RAW_DIR}/perf.arm64_lto" \
     -- make all -sj"${NPROC}" ARCH=arm64 "${KMAKEFLAGS[@]}"
 
@@ -149,6 +149,9 @@ run_profgen "${CSSSPGO_RAW_DIR}/perf.arm64_lto" "${_AR_BINARY}" "${CSSSPGO_RAW_D
 "${LLVM_STAGE0_BIN_DIR}/llvm-profdata" merge \
     --sample \
     --extbinary \
+    --sample-trim-cold-context \
+    --sample-merge-cold-context \
+    --compress-all-sections \
     --output="${CSSSPGO_PROFDATA}" \
     "${CSSSPGO_RAW_DIR}"/*.prof
 
