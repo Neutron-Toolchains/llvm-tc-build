@@ -50,6 +50,7 @@ _OPT_LDFLAGS=(
     "${FULL_LDFLAGS[@]}"
     "-fuse-ld=${LLVM_STAGE0_BIN_DIR}/ld.lld"
     "-Wl,--build-id=sha1"
+    "-Wl,--lto-basic-block-sections=${PROPELLER_CC_PROFILE}"
     "-Wl,--symbol-ordering-file=${PROPELLER_LD_PROFILE}"
     "-Wl,--no-warn-symbol-ordering"
     "-Wl,-mllvm,-enable-ext-tsp-block-placement=1"
