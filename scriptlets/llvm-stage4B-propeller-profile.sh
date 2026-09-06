@@ -155,12 +155,32 @@ info "Generating Propeller profiles for llvm-ar"
     --ld_profile="${PROPELLER_RAW_DIR}/ar_ld.txt"
 
 # Merge profiles
+# The v1 header is only valid as the first line of the file, and
+# duplicate function entries (shared LLVM libraries are profiled in
+# every binary) are a hard parse error, so keep a single header and
+# only the first entry per function. clang gets priority as the most
+# performance-critical binary.
 info "Merging cc_profiles"
-cat \
-    "${PROPELLER_RAW_DIR}/clang_cc.txt" \
-    "${PROPELLER_RAW_DIR}/lld_cc.txt" \
-    "${PROPELLER_RAW_DIR}/ar_cc.txt" \
-    >"${PROPELLER_CC_PROFILE}"
+{
+    head -n 1 "${PROPELLER_RAW_DIR}/clang_cc.txt"
+    awk '
+        /^v[0-9]/ { next }
+        /^m / { pending = pending $0 ORS; next }
+        /^f / {
+            keep = !($2 in seen)
+            if (keep) {
+                for (i = 2; i <= NF; i++) seen[$i] = 1
+                printf "%s", pending
+            }
+            pending = ""
+            if (keep) print
+            next
+        }
+        keep { print }
+    ' "${PROPELLER_RAW_DIR}/clang_cc.txt" \
+        "${PROPELLER_RAW_DIR}/lld_cc.txt" \
+        "${PROPELLER_RAW_DIR}/ar_cc.txt"
+} >"${PROPELLER_CC_PROFILE}"
 
 info "Merging ld_profiles"
 cat \
